@@ -33,7 +33,7 @@ function App() {
           paragraph += block[i].content[j]?.text;
         }
       }
-      if (paragraph !== "" || paragraph !== " "){
+      if (paragraph !== "" && paragraph !== " "){
         string.push(paragraph);
       }
       
