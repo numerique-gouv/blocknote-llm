@@ -12,24 +12,31 @@ function App() {
 
   const transformateurJsonToString = (block) => {
     let string = [];
-    console.log(block);
     for (let i = 0; i < block.length; i++) {
       let paragraph = "";
       if (block[i].type === "table") {
-        for (let j = 0; j < block[i].content.rows.length; j++) { 
+        for (let j = 0; j < block[i].content.rows.length; j++) {
+          //console.log(block[i].content.rows[j].cells);
           for (let k = 0; k < block[i].content.rows[j].cells.length; k++) {
-            string.push(block[i].content.rows[j].cells[k]);
-            let table = "";
-            table += block[i].content.rows[j].cells[k].text;
-            string.push(table);
+            for (
+              let l = 0;
+              l < block[i].content.rows[j].cells[k].length;
+              l++
+            ) {
+              paragraph += " "
+              paragraph += block[i].content.rows[j].cells[k][l]?.text;
+            }
           }
         }
       } else {
         for (let j = 0; j < block[i].content.length; j++) {
-          paragraph += block[i].content[j].text;
+          paragraph += block[i].content[j]?.text;
         }
       }
-      string.push(paragraph);
+      if (paragraph !== "" || paragraph !== " "){
+        string.push(paragraph);
+      }
+      
     }
     //console.log(string);
     return string;
@@ -48,7 +55,7 @@ function App() {
         />
       </div>
       {transformateurJsonToString(blocks).map((item, index) => (
-        <p key={index}>{item}</p>
+        <p key={index}> {item}</p>
       ))}
       <div>Document JSON:</div>
       <div className={"item bordered"}>
