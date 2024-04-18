@@ -12,18 +12,16 @@ function App() {
 
   const transformateurJsonToString = (block) => {
     let string = [];
+    let id = "";
     for (let i = 0; i < block.length; i++) {
       let paragraph = "";
+      id = block[i].id;
       if (block[i].type === "table") {
         for (let j = 0; j < block[i].content.rows.length; j++) {
           //console.log(block[i].content.rows[j].cells);
           for (let k = 0; k < block[i].content.rows[j].cells.length; k++) {
-            for (
-              let l = 0;
-              l < block[i].content.rows[j].cells[k].length;
-              l++
-            ) {
-              paragraph += " "
+            for (let l = 0; l < block[i].content.rows[j].cells[k].length; l++) {
+              paragraph += " ";
               paragraph += block[i].content.rows[j].cells[k][l]?.text;
             }
           }
@@ -33,12 +31,11 @@ function App() {
           paragraph += block[i].content[j]?.text;
         }
       }
-      if (paragraph !== "" && paragraph !== " "){
-        string.push(paragraph);
+      if (paragraph !== "" && paragraph !== " ") {
+        string.push({ id: id, text: paragraph });
       }
-      
     }
-    //console.log(string);
+    console.log(string);
     return string;
   };
 
@@ -55,7 +52,7 @@ function App() {
         />
       </div>
       {transformateurJsonToString(blocks).map((item, index) => (
-        <p key={index}> {item}</p>
+        <p key={index}> {item.text}</p>
       ))}
       <div>Document JSON:</div>
       <div className={"item bordered"}>
