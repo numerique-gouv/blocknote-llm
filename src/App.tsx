@@ -11,7 +11,7 @@ function App() {
   const editor = useCreateBlockNote();
 
   const transformateurJsonToString = (block) => {
-    let string = [];
+    const string = [];
     let id = "";
     for (let i = 0; i < block.length; i++) {
       let paragraph = "";
@@ -39,6 +39,29 @@ function App() {
     return string;
   };
 
+  const transformateurStringToJson = (string, block) => {
+    let id = "";
+    for (let i = 0; i < string.length; i++) {
+      id = string[i].id;
+      let paragraph = string[i].text;
+      if (block[i].type === "table") {
+        for (let j = 0; j < block[i].content.rows.length; j++) {
+          for (let k = 0; k < block[i].content.rows[j].cells.length; k++) {
+            for (let l = 0; l < block[i].content.rows[j].cells[k].length; l++) {
+              block[i].content.rows[j].cells[k][l].text = paragraph;
+            }
+          }
+        }
+      } else {
+        for (let j = 0; j < block[i].content.length; j++) {
+          block[i].content[j].text = paragraph;
+        }
+      }
+    }
+    return block;
+  }
+
+
   return (
     <div>
       <div>
@@ -54,6 +77,10 @@ function App() {
       {transformateurJsonToString(blocks).map((item, index) => (
         <p key={index}> {item.text}</p>
       ))}
+      {/* {transformateurStringToJson(transformateurJsonToString(blocks),blocks).map((item, index) => (
+        <p key={index}> {item}</p>
+      ))} */}
+
       <div>Document JSON:</div>
       <div className={"item bordered"}>
         <pre>
