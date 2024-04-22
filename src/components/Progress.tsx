@@ -1,4 +1,9 @@
-export default function Progress({ text, percentage }) {
+interface ProgressProps {
+	text: string;
+	percentage?: number;
+}
+
+export default function Progress({ text, percentage }: ProgressProps) {
 	percentage = percentage ?? 0;
 	return (
 		<div className='progress-container'>

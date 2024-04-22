@@ -9,19 +9,22 @@ import {
 } from '@blocknote/react';
 import '@blocknote/react/style.css';
 
-import TranslateBlockButton from './TranslateBlockButton';
-import { Block } from '@blocknote/core';
+import TranslateBlockButton from './components/TranslateBlockButton';
 import Progress from './components/Progress';
-import './Test.css';
+import './App.css';
+
+interface WorkerMessage {
+	status: string;
+	text?: string;
+	file: string;
+	progress: number;
+	id: string;
+	output: [{ translation_text: string }];
+}
 
 const Demo = () => {
 	const [ready, setReady] = useState<null | boolean>(null);
-	const [disabled, setDisabled] = useState(false);
-	const [progressItems, setProgressItems] = useState([]);
-	const [blocks, setBlocks] = useState<Block[]>([]);
-
-	const [input, setInput] = useState<{ id: string; text: string }[]>([]);
-	const [output, setOutput] = useState('');
+	const [progressItems, setProgressItems] = useState<WorkerMessage[]>([]);
 
 	const editor = useCreateBlockNote();
 
@@ -34,7 +37,7 @@ const Demo = () => {
 			});
 		}
 
-		const onMessageReceived = (e) => {
+		const onMessageReceived = (e: MessageEvent<WorkerMessage>) => {
 			switch (e.data.status) {
 				case 'initiate':
 					setReady(false);
@@ -63,11 +66,9 @@ const Demo = () => {
 					break;
 
 				case 'update':
-					setOutput(e.data.output);
 					break;
 
 				case 'complete':
-					setDisabled(false);
 					editor.insertBlocks(
 						[
 							{
@@ -96,14 +97,7 @@ const Demo = () => {
 
 	return (
 		<>
-			<BlockNoteView
-				editor={editor}
-				sideMenu={false}
-				onChange={() => {
-					// Saves the document JSON to state.
-					setBlocks(editor.document);
-				}}
-			>
+			<BlockNoteView editor={editor} sideMenu={false}>
 				<SideMenuController
 					sideMenu={(props) => (
 						<SideMenu {...props}>
