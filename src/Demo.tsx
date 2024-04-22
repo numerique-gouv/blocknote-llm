@@ -12,6 +12,7 @@ import '@blocknote/react/style.css';
 import TranslateBlockButton from './components/TranslateBlockButton';
 import Progress from './components/Progress';
 import './App.css';
+import { Block } from '@blocknote/core';
 
 interface WorkerMessage {
 	status: string;
@@ -24,9 +25,15 @@ interface WorkerMessage {
 
 const Demo = () => {
 	const [ready, setReady] = useState<null | boolean>(null);
+	const [disabled, setDisabled] = useState<boolean>(false);
+	const [translation, setTranslation] = useState<boolean>(false);
 	const [progressItems, setProgressItems] = useState<WorkerMessage[]>([]);
+	const [translationCount, setTranslationCount] = useState<number>(0);
 
-	const editor = useCreateBlockNote();
+	const editorFrench = useCreateBlockNote();
+	const editorEnglish = useCreateBlockNote({
+		initialContent: editorFrench.document,
+	});
 
 	const worker = useRef<Worker | null>(null);
 
@@ -69,22 +76,17 @@ const Demo = () => {
 					break;
 
 				case 'complete':
-					editor.insertBlocks(
-						[
+					console.log(e.data.output[0].translation_text);
+					editorEnglish.updateBlock(e.data.id, {
+						content: [
 							{
-								type: 'paragraph',
-								content: [
-									{
-										type: 'text',
-										text: e.data.output[0].translation_text,
-										styles: { textColor: 'red' },
-									},
-								],
+								type: 'text',
+								text: e.data.output[0].translation_text,
+								styles: { textColor: 'red' },
 							},
 						],
-						e.data.id,
-						'after'
-					);
+					});
+					setTranslationCount((prevCount) => prevCount - 1);
 					break;
 			}
 		};
@@ -95,18 +97,77 @@ const Demo = () => {
 			worker.current?.removeEventListener('message', onMessageReceived);
 	});
 
+	useEffect(() => {
+		if (translationCount === 0) {
+			setDisabled(false);
+		}
+	}, [translationCount]);
+
+	const transformateurJsonToString = (block: Block) => {
+		let text = '';
+		if (block.type === 'table') {
+			for (let i = 0; i < block.content.rows.length; i++) {
+				for (let j = 0; j < block.content.rows[i].cells.length; j++) {
+					for (let k = 0; k < block.content.rows[i].cells[j].length; k++) {
+						text += ' ';
+						text += block.content.rows[i].cells[j][k]?.text;
+					}
+				}
+			}
+		} else if (block.content) {
+			for (let i = 0; i < block.content.length; i++) {
+				text += block.content[i]?.text;
+			}
+		}
+
+		return text;
+	};
+
+	const translate = async () => {
+		console.log(editorFrench.document);
+		//console.log(editorEnglish.document);
+
+		await editorFrench.tryParseMarkdownToBlocks(''); //Fix bug
+		editorEnglish.replaceBlocks(editorEnglish.document, editorFrench.document);
+		editorFrench.forEachBlock((block) => {
+			const text = transformateurJsonToString(block);
+			if (text !== '') {
+				setTranslationCount((prevCount) => prevCount + 1);
+				worker.current?.postMessage({
+					text: text,
+					id: block.id,
+				});
+			}
+			return true;
+		});
+	};
+
 	return (
 		<>
-			<BlockNoteView editor={editor} sideMenu={false}>
-				<SideMenuController
-					sideMenu={(props) => (
-						<SideMenu {...props}>
-							<TranslateBlockButton worker={worker} {...props} />
-							<DragHandleButton {...props} />
-						</SideMenu>
-					)}
+			<div className='blocknote-container'>
+				<BlockNoteView
+					editor={editorFrench}
+					className={
+						translation ? 'blocknote-french' : 'blocknote-french full-width'
+					}
 				/>
-			</BlockNoteView>
+				{translation && (
+					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
+				)}
+			</div>
+			<div className='translate-button'>
+				{disabled && <p>Document en cours de traduction ...</p>}
+				<button
+					disabled={disabled}
+					onClick={() => {
+						setDisabled(true);
+						setTranslation(true);
+						translate();
+					}}
+				>
+					Traduire le document
+				</button>
+			</div>
 			<div className='progress-bars-container'>
 				{ready === false && <label>Loading models... (only run once)</label>}
 				{progressItems.map((data) => (

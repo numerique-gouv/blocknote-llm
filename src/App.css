@@ -1,3 +1,20 @@
+.blocknote-container {
+	display: flex;
+	justify-content: center;
+}
+
+.blocknote-french {
+	width: 50%;
+}
+
+.blocknote-english {
+	width: 50%;
+}
+
+.full-width {
+	width: 100%;
+}
+
 .progress-container {
 	position: relative;
 	font-size: 14px;
@@ -39,4 +56,11 @@
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+}
+
+.translate-button {
+	display: flex;
+	flex-direction: column;
+	margin-top: 40px;
+	align-items: center;
 }
