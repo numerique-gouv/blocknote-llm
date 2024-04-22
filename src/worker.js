@@ -39,5 +39,6 @@ self.addEventListener('message', async (event) => {
 	self.postMessage({
 		status: 'complete',
 		output: output,
+		id: event.data.id,
 	});
 });
