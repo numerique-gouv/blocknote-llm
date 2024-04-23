@@ -1,0 +1,66 @@
+.blocknote-container {
+	display: flex;
+	justify-content: center;
+}
+
+.blocknote-french {
+	width: 50%;
+}
+
+.blocknote-english {
+	width: 50%;
+}
+
+.full-width {
+	width: 100%;
+}
+
+.progress-container {
+	position: relative;
+	font-size: 14px;
+	color: white;
+	background-color: #e9ecef;
+	border: solid 1px;
+	border-radius: 8px;
+	text-align: left;
+	overflow: hidden;
+}
+
+.progress-bar {
+	padding: 0 4px;
+	z-index: 0;
+	top: 0;
+	width: 1%;
+	height: 100%;
+	overflow: hidden;
+	background-color: #007bff;
+	white-space: nowrap;
+}
+
+.progress-text {
+	z-index: 2;
+}
+
+.selector-container {
+	display: flex;
+	gap: 20px;
+}
+
+.progress-bars-container {
+	padding: 8px;
+	height: 140px;
+}
+
+.container {
+	margin: 25px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.translate-button {
+	display: flex;
+	flex-direction: column;
+	margin-top: 40px;
+	align-items: center;
+}
