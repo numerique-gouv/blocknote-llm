@@ -48,13 +48,13 @@ function App() {
         for (let j = 0; j < block[i].content.rows.length; j++) {
           for (let k = 0; k < block[i].content.rows[j].cells.length; k++) {
             for (let l = 0; l < block[i].content.rows[j].cells[k].length; l++) {
-              block[i].content.rows[j].cells[k][l].text = paragraph;
+              block[i].content.rows[j].cells[k][l].text += "  " + paragraph;
             }
           }
         }
       } else {
         for (let j = 0; j < block[i].content.length; j++) {
-          block[i].content[j].text = paragraph;
+          block[i].content[j].text += "  " + paragraph;
         }
       }
     }
