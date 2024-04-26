@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { appConfig } from './app-config'
 import * as webllm from '@mlc-ai/web-llm';
 import './App.css';
 
@@ -15,13 +16,13 @@ const TestLlama3 = () => {
 		const initProgressCallback = (report: webllm.InitProgressReport) => {
 			setLoading(report.text);
 		};
-		const selectedModel = 'Llama-3-8B-Instruct-q4f32_1';
+		const selectedModel = 'CroissantLLMChat-v0.1-q0f16';
 		const engine: webllm.EngineInterface = await webllm.CreateWebWorkerEngine(
 			new Worker(new URL('./workerLlama.ts', import.meta.url), {
 				type: 'module',
 			}),
 			selectedModel,
-			{ initProgressCallback: initProgressCallback }
+			{ appConfig: appConfig, initProgressCallback: initProgressCallback }
 		);
 		const reply0 = await engine.chat.completions.create({
 			stream: true,
