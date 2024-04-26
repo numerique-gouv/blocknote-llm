@@ -64,3 +64,11 @@
 	margin-top: 40px;
 	align-items: center;
 }
+
+.textbox-container {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 20px;
+	width: 100%;
+}

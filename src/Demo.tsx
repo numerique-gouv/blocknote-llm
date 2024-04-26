@@ -1,15 +1,8 @@
 import { useRef, useState, useEffect } from 'react';
 import '@blocknote/core/fonts/inter.css';
-import {
-	BlockNoteView,
-	DragHandleButton,
-	SideMenu,
-	SideMenuController,
-	useCreateBlockNote,
-} from '@blocknote/react';
+import { BlockNoteView, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
 
-import TranslateBlockButton from './components/TranslateBlockButton';
 import Progress from './components/Progress';
 import './App.css';
 import { Block } from '@blocknote/core';
