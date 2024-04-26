@@ -16,7 +16,7 @@ const TestLlama3 = () => {
 		const initProgressCallback = (report: webllm.InitProgressReport) => {
 			setLoading(report.text);
 		};
-		const selectedModel = 'CroissantLLMChat-v0.1-q0f16';
+		const selectedModel = 'CroissantLLMChat-v0.1-q4f32_1';
 		const engine: webllm.EngineInterface = await webllm.CreateWebWorkerEngine(
 			new Worker(new URL('./workerLlama.ts', import.meta.url), {
 				type: 'module',
