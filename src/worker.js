@@ -1,7 +1,6 @@
 import { pipeline, env } from '@xenova/transformers';
 
 env.allowLocalModels = false;
-env.useBrowserCache = false;
 
 class MyTranslationPipeline {
 	static task = 'translation';
