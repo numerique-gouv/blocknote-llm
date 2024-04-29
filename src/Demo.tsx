@@ -2,10 +2,11 @@ import { useRef, useState, useEffect } from 'react';
 import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
-
+import * as webllm from '@mlc-ai/web-llm';
 import Progress from './components/Progress';
 import './App.css';
 import { Block } from '@blocknote/core';
+import { appConfig } from './app-config';
 
 interface WorkerMessage {
 	status: string;
@@ -22,6 +23,7 @@ const Demo = () => {
 	const [translation, setTranslation] = useState<boolean>(false);
 	const [progressItems, setProgressItems] = useState<WorkerMessage[]>([]);
 	const [translationCount, setTranslationCount] = useState<number>(0);
+	const [loading, setLoading] = useState<string>('');
 
 	const editorFrench = useCreateBlockNote();
 	const editorEnglish = useCreateBlockNote({
@@ -79,7 +81,7 @@ const Demo = () => {
 							},
 						],
 					});
-					setTranslationCount((prevCount) => prevCount - 1);
+
 					break;
 			}
 		};
@@ -120,19 +122,83 @@ const Demo = () => {
 		console.log(editorFrench.document);
 		//console.log(editorEnglish.document);
 
+		const initProgressCallback = (report: webllm.InitProgressReport) => {
+			setLoading(report.text);
+		};
+		const selectedModel = 'CroissantLLMChat-v0.1-q4f32_1';
+		const engine: webllm.EngineInterface = await webllm.CreateWebWorkerEngine(
+			new Worker(new URL('./workerLlama.ts', import.meta.url), {
+				type: 'module',
+			}),
+			selectedModel,
+			{ appConfig: appConfig, initProgressCallback: initProgressCallback }
+		);?
+		const idBlock: string[] = [];
 		await editorFrench.tryParseMarkdownToBlocks(''); //Fix bug
 		editorEnglish.replaceBlocks(editorEnglish.document, editorFrench.document);
 		editorFrench.forEachBlock((block) => {
 			const text = transformateurJsonToString(block);
 			if (text !== '') {
 				setTranslationCount((prevCount) => prevCount + 1);
-				worker.current?.postMessage({
-					text: text,
-					id: block.id,
+				idBlock.push(block.id);
+				editorEnglish.updateBlock(block.id, {
+					content: [
+						{
+							type: 'text',
+							text: 'Traduction en cours ...',
+							styles: { textColor: 'red' },
+						},
+					],
 				});
 			}
 			return true;
 		});
+		for (const id of idBlock) {
+			const block = editorFrench.getBlock(id);
+			let text = '';
+			if (block) {
+				text = transformateurJsonToString(block);
+			}
+			if (text !== '') {
+				const prompt = 'Tu peux me traduire ce texte en anglais : ';
+				const reply0 = await engine.chat.completions.create({
+					stream: true,
+					messages: [{ role: 'user', content: prompt + text }],
+				});
+
+				editorEnglish.updateBlock(id, {
+					content: [
+						{
+							type: 'text',
+							text: '',
+							styles: { textColor: 'red' },
+						},
+					],
+				});
+
+				for await (const chunk of reply0) {
+					const curlDelta = chunk.choices[0].delta.content;
+					if (curlDelta) {
+						const existingBlock = editorEnglish.getBlock(id);
+						if (existingBlock) {
+							const updatedText = existingBlock.content?.[0]?.text || '';
+							editorEnglish.updateBlock(id, {
+								content: [
+									{
+										type: 'text',
+										text: updatedText + curlDelta,
+										styles: { textColor: 'red' },
+									},
+								],
+							});
+						}
+					}
+				}
+				console.log(await engine.runtimeStatsText());
+				console.log(await engine.getMessage());
+				setTranslationCount((prevCount) => prevCount - 1);
+			}
+		}
 	};
 
 	return (
@@ -150,6 +216,7 @@ const Demo = () => {
 			</div>
 			<div className='translate-button'>
 				{disabled && <p>Document en cours de traduction ...</p>}
+				<div style={{ marginBottom: '15px' }}>{loading}</div>
 				<button
 					disabled={disabled}
 					onClick={() => {
@@ -161,6 +228,7 @@ const Demo = () => {
 					Traduire le document
 				</button>
 			</div>
+
 			<div className='progress-bars-container'>
 				{ready === false && <label>Loading models... (only run once)</label>}
 				{progressItems.map((data) => (

@@ -7,8 +7,8 @@ import TestTransformer from './TestTransformer.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
-		{/* <Demo /> */}
-		<TestLlama3 />
+		<Demo />
+		{/* <TestLlama3 /> */}
 		{/* <TestTransformer /> */}
 	</React.StrictMode>
 );
