@@ -132,7 +132,7 @@ const Demo = () => {
 			}),
 			selectedModel,
 			{ appConfig: appConfig, initProgressCallback: initProgressCallback }
-		);?
+		);
 		const idBlock: string[] = [];
 		await editorFrench.tryParseMarkdownToBlocks(''); //Fix bug
 		editorEnglish.replaceBlocks(editorEnglish.document, editorFrench.document);
