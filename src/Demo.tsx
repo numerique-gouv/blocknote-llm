@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import '@blocknote/core/fonts/inter.css';
-import { BlockNoteView, useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteView, useCreateBlockNote, FormattingToolbar, FormattingToolbarController, BlockTypeSelect, ImageCaptionButton, ReplaceImageButton, BasicTextStyleButton, TextAlignButton, ColorStyleButton, NestBlockButton, UnnestBlockButton, CreateLinkButton } from '@blocknote/react';
 import '@blocknote/react/style.css';
 import './App.css';
 import {
@@ -14,6 +14,8 @@ import ChatUI from './ChatUI';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
 import { BlockNoteEditor } from '@blocknote/core';
 import { CustomFormattingToolbar } from './components/CustomFormattingToolbar';
+import { appConfig } from './app-config';
+import { MODEL_DESCRIPTIONS, Model } from '../src_v2/models';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -321,6 +323,22 @@ const Demo = () => {
 						Corriger le document
 					</button>
 				</div>
+			</div>
+            <div className='blocknote-container'>
+				<BlockNoteView
+					editor={editorFrench}
+					className={
+						translation ? 'blocknote-french' : 'blocknote-french full-width'
+					}
+                    formattingToolbar={false}>
+                    <FormattingToolbarController
+                    formattingToolbar={() => (
+                        <CustomFormattingToolbar/>
+                    )}/>
+                </BlockNoteView>
+				{translation && (
+					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
+				)}
 			</div>
 			<div className='blocknote-container'>
 				<BlockNoteView
