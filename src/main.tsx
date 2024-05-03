@@ -9,9 +9,9 @@ import ChatComponent from './WebLLM2.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
-		{/* <Demo /> */}
+		<Demo />
 		{/* <TestLlama3 /> */}
 		{/* <TestTransformer /> */}
-		<ChatComponent />
+		{/* <ChatComponent /> */}
 	</React.StrictMode>
 );
