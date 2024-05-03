@@ -61,7 +61,8 @@
 .translate-button {
 	display: flex;
 	flex-direction: column;
-	margin-top: 40px;
+	margin-top: 0px;
+	margin-bottom: 40px;
 	align-items: center;
 }
 
