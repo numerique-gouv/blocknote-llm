@@ -13,6 +13,7 @@ import {
 import ChatUI from './ChatUI';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
 import { BlockNoteEditor } from '@blocknote/core';
+import { CustomFormattingToolbar } from './components/CustomFormattingToolbar';
 import { appConfig } from './app-config';
 import { MODEL_DESCRIPTIONS, Model } from '../src_v2/models';
 
@@ -329,7 +330,12 @@ const Demo = () => {
 					className={
 						translation ? 'blocknote-french' : 'blocknote-french full-width'
 					}
-				/>
+                    formattingToolbar={false}>
+                    <FormattingToolbarController
+                    formattingToolbar={() => (
+                        <CustomFormattingToolbar/>
+                    )}/>
+			
 				{translation && (
 					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
 				)}
