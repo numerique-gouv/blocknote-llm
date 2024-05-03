@@ -4,11 +4,13 @@ import Demo from './Demo.tsx';
 import './index.css';
 import TestLlama3 from './TestLlama3.tsx';
 import TestTransformer from './TestTransformer.tsx';
+import WebLLM from './WebLLM.tsx';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
 	<React.StrictMode>
-		<Demo />
+		{/* <Demo /> */}
 		{/* <TestLlama3 /> */}
 		{/* <TestTransformer /> */}
+		<WebLLM />
 	</React.StrictMode>
 );
