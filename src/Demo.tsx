@@ -10,6 +10,7 @@ import { BlockNoteEditor } from '@blocknote/core';
 
 const Demo = () => {
 	const [disabled, setDisabled] = useState<boolean>(false);
+	const [disabled2, setDisabled2] = useState<boolean>(false);
 	const [translation, setTranslation] = useState<boolean>(false);
 	//const [translationCount, setTranslationCount] = useState<number>(0);
 
@@ -72,11 +73,50 @@ const Demo = () => {
 		}
 	};
 
+	const Correction = async () => {
+		const idBlocks = getEditorBlocks(editorFrench);
+		for (const id of idBlocks) {
+			const block = editorFrench.getBlock(id);
+			let text = '';
+			if (block) {
+				text = transformateurJsonToString(block);
+			}
+			if (text !== '') {
+				const prompt =
+					"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
+					text;
+				chat_ui
+					.onGenerateCorrection(
+						prompt,
+						updateMessage,
+						addBelowBlock,
+						editorFrench,
+						id,
+						setRuntimeStats,
+						setDisabled2
+					)
+					.catch((error) => console.log(error));
+			}
+		}
+	};
+
+	const getEditorBlocks = (editor: BlockNoteEditor) => {
+		const idBlocks: string[] = [];
+		editor.forEachBlock((block) => {
+			const text = transformateurJsonToString(block);
+			if (text !== '') {
+				idBlocks.push(block.id);
+			}
+			return true;
+		});
+		return idBlocks;
+	};
+
 	const duplicateEditor = async (
 		initialEditor: BlockNoteEditor,
 		duplicateEditor: BlockNoteEditor
 	) => {
-		const idBlock: string[] = [];
+		const idBlocks: string[] = [];
 		await initialEditor.tryParseMarkdownToBlocks(''); //Fix bug
 		duplicateEditor.replaceBlocks(
 			duplicateEditor.document,
@@ -85,7 +125,7 @@ const Demo = () => {
 		initialEditor.forEachBlock((block) => {
 			const text = transformateurJsonToString(block);
 			if (text !== '') {
-				idBlock.push(block.id);
+				idBlocks.push(block.id);
 				duplicateEditor.updateBlock(block.id, {
 					content: [
 						{
@@ -98,7 +138,7 @@ const Demo = () => {
 			}
 			return true;
 		});
-		return idBlock;
+		return idBlocks;
 	};
 
 	const updateBlock = (
@@ -120,21 +160,59 @@ const Demo = () => {
 		}
 	};
 
+	const addBelowBlock = (
+		editor: BlockNoteEditor,
+		blockId: string,
+		text: string
+	) => {
+		const block = editor.getBlock(blockId);
+		if (block) {
+			editor.insertBlocks(
+				[
+					{
+						content: [
+							{
+								type: 'text',
+								text: text,
+								styles: { textColor: 'red' },
+							},
+						],
+					},
+				],
+				blockId,
+				'after'
+			);
+		}
+	};
+
 	return (
 		<>
 			<div className='translate-button'>
 				{disabled && <p>Document en cours de traduction ...</p>}
+				{disabled2 && <p>Document en cours de corrrection ...</p>}
 				{runtimeStats && <p>Vitesse : {runtimeStats}</p>}
-				<button
-					disabled={disabled}
-					onClick={() => {
-						setDisabled(true);
-						setTranslation(true);
-						translate();
-					}}
-				>
-					Traduire le document
-				</button>
+				<div style={{ display: 'flex', gap: '20px' }}>
+					<button
+						disabled={disabled}
+						onClick={() => {
+							setDisabled(true);
+							setTranslation(true);
+							translate();
+						}}
+					>
+						Traduire le document
+					</button>
+					<button
+						disabled={disabled2}
+						onClick={() => {
+							setDisabled2(true);
+							// setTranslation(true);
+							Correction();
+						}}
+					>
+						Corriger le document
+					</button>
+				</div>
 			</div>
 			<div className='blocknote-container'>
 				<BlockNoteView
