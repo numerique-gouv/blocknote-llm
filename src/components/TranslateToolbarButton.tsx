@@ -1,4 +1,4 @@
-import { Block } from "@blocknote/core";
+import { Block, BlockNoteEditor } from "@blocknote/core";
 import {
     ToolbarButton,
     useBlockNoteEditor,
@@ -6,6 +6,17 @@ import {
 } from "@blocknote/react";
 import { useState } from "react";
 
+function translateSingleBlock(block: Block, editor: BlockNoteEditor) {
+    const markdownBlock = editor.blocksToMarkdownLossy([block])
+    const translatedMarkdownBlock = translate(markdownBlock)
+    editor.insertBlocks(editor.tryParseMarkdownToBlocks(translatedMarkdownBlock), block.id, "after")
+}
+
+function translateBlocks(blocks: Block[], editor: BlockNoteEditor) {
+    for (const block of blocks) {
+        
+    }
+}
 
 // Custom Formatting Toolbar Button to translate text to English
 export function TranslateToolbarButton() {
@@ -25,11 +36,11 @@ export function TranslateToolbarButton() {
 
     return (
         <ToolbarButton
-        mainTooltip={"Translate"}
+        mainTooltip={"Traduire"}
         onClick={() => {
             translateBlocks(editor.getSelection()?.blocks)
         }}>
-        Translate
+        Traduire
         </ToolbarButton>
     );
 }
