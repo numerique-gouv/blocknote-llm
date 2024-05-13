@@ -100,6 +100,58 @@ const Demo = () => {
 		}
 	};
 
+	const Resume = async () => {
+		const idBlocks = getEditorBlocks(editorFrench);
+		let document = []
+		resume = [];
+		let text = '';
+		let titre1 = "";
+		let titre2 = "";
+		let titre3 = "";
+		let i = -1;
+		for (const id of idBlocks) {
+			const block = editorFrench.getBlock(id);
+
+			if (block.type === 'heading'){
+				// if (block.props.level === 1){
+				// 	titre1 = transformateurJsonToString(block);
+				// 	titre2 = "";
+				// 	titre3 = "";}
+				
+				// else if (block.props.level === 2){
+				// 	titre2 = transformateurJsonToString(block);
+				// 	titre3 = "";
+				// 	}
+				// else if (block.props.level === 3){
+				// 	titre3 = transformateurJsonToString(block);
+				// }
+				i += 1;
+				if (text !== '') {
+					const prompt =
+						" Résume ce texte : " +
+						text;
+					chat_ui
+					.onGenerateCorrection(
+						prompt,
+						updateMessage,
+						addBelowBlock,
+						editorFrench,
+						id,
+						setRuntimeStats,
+						setDisabled2
+					)
+					.catch((error) => console.log(error));
+			}
+				resume.push(text);
+
+			} 
+			
+			else {
+				text += transformateurJsonToString(block);
+			}
+		}
+	};
+
 	const getEditorBlocks = (editor: BlockNoteEditor) => {
 		const idBlocks: string[] = [];
 		editor.forEachBlock((block) => {
