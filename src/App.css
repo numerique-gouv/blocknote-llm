@@ -73,3 +73,34 @@
 	gap: 20px;
 	width: 100%;
 }
+
+.chatui-select-wrapper {
+	display: flex;
+	justify-content: center;
+	margin: 20px 0;
+	padding: 10px 0;
+}
+
+#chatui-select {
+	width: 350px;
+	color: black;
+	border: none;
+}
+
+#chatui-select:focus {
+	outline: none;
+}
+
+#chatui-select::-webkit-scrollbar {
+	display: none;
+}
+
+#chatui-select option {
+	background-color: #1f2027;
+	color: white;
+}
+
+#chatui-select option:hover {
+	background-color: #474747;
+	color: white;
+}

@@ -3,12 +3,27 @@ import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
 import './App.css';
-import { Engine } from '@mlc-ai/web-llm';
+import {
+	ChatCompletionMessageParam,
+	CreateWebWorkerEngine,
+	Engine,
+	EngineInterface,
+	InitProgressReport,
+} from '@mlc-ai/web-llm';
 import ChatUI from './ChatUI';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
 import { BlockNoteEditor } from '@blocknote/core';
+import { appConfig } from './app-config';
+import { MODEL_DESCRIPTIONS, Model } from '../src_v2/models';
 
 const Demo = () => {
+	const [engine, setEngine] = useState<EngineInterface | null>(null);
+	const [progress, setProgress] = useState('Not loaded');
+	const [test, setTest] = useState('');
+	const [selectedModel, setSelectedModel] = useState<string>(
+		Model.CROISSANT_LLM_CHAT_V0_1_Q4F16_1
+	);
+	const [isGenerating, setIsGenerating] = useState(false);
 	const [disabled, setDisabled] = useState<boolean>(false);
 	const [disabled2, setDisabled2] = useState<boolean>(false);
 	const [translation, setTranslation] = useState<boolean>(false);
@@ -18,24 +33,117 @@ const Demo = () => {
 		[]
 	);
 	const [runtimeStats, setRuntimeStats] = useState('');
-	const [chat_ui] = useState(new ChatUI(new Engine()));
 
 	const editorFrench = useCreateBlockNote();
 	const editorEnglish = useCreateBlockNote({
 		initialContent: editorFrench.document,
 	});
 
-	const updateMessage = (kind: string, text: string, append: boolean) => {
-		if (kind == 'init') {
-			text = '[System Initalize] ' + text;
+	const initProgressCallback = (report: InitProgressReport) => {
+		console.log(report);
+		setProgress(report.text);
+	};
+
+	const loadEngine = async () => {
+		console.log('Loading engine');
+
+		const engine: EngineInterface = await CreateWebWorkerEngine(
+			new Worker(new URL('./workerLlama.ts', import.meta.url), {
+				type: 'module',
+			}),
+			selectedModel,
+			{ initProgressCallback: initProgressCallback, appConfig: appConfig }
+		);
+		setEngine(engine);
+		return engine;
+	};
+
+	type updateEditor = (
+		text: string,
+		editor?: BlockNoteEditor,
+		idBlock?: string,
+		textColor?: string
+	) => void;
+
+	const onSend = async (prompt: string, updateEditor: updateEditor) => {
+		if (prompt === '') {
+			return;
 		}
-		const msgCopy = [...messages];
-		if (msgCopy.length == 0 || append) {
-			setMessages([...msgCopy, { kind, text }]);
-		} else {
-			msgCopy[msgCopy.length - 1] = { kind, text };
-			setMessages([...msgCopy]);
+		setIsGenerating(true);
+
+		let loadedEngine = engine;
+
+		const userMessage: ChatCompletionMessageParam = {
+			role: 'user',
+			content: prompt,
+		};
+		setTest('');
+
+		if (!loadedEngine) {
+			console.log('Engine not loaded');
+
+			try {
+				loadedEngine = await loadEngine();
+			} catch (error) {
+				setIsGenerating(false);
+				console.log(error);
+				setTest('Could not load the model because ' + error);
+				return;
+			}
 		}
+
+		try {
+			const completion = await loadedEngine.chat.completions.create({
+				stream: true,
+				messages: [userMessage],
+			});
+
+			let assistantMessage = '';
+			for await (const chunk of completion) {
+				const curDelta = chunk.choices[0].delta.content;
+				if (curDelta) {
+					assistantMessage += curDelta;
+				}
+				updateEditor(assistantMessage);
+			}
+
+			setIsGenerating(false);
+			setRuntimeStats(await loadedEngine.runtimeStatsText());
+			console.log(await loadedEngine.runtimeStatsText());
+		} catch (e) {
+			setIsGenerating(false);
+			console.log('EXECPTION');
+			console.log(e);
+			setTest('Error. Try again.');
+			return;
+		}
+	};
+
+	const resetChat = async () => {
+		if (!engine) {
+			console.log('Engine not loaded');
+			return;
+		}
+		await engine.resetChat();
+		setTest('');
+	};
+
+	const resetEngineAndChatHistory = async () => {
+		if (engine) {
+			await engine.unload();
+		}
+		setEngine(null);
+		setTest('');
+	};
+
+	const onStop = () => {
+		if (!engine) {
+			console.log('Engine not loaded');
+			return;
+		}
+
+		setIsGenerating(false);
+		engine.interruptGenerate();
 	};
 
 	const translate = async () => {
@@ -48,27 +156,9 @@ const Demo = () => {
 			}
 			if (text !== '') {
 				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				chat_ui
-					.onGenerateTranslation(
-						prompt,
-						updateMessage,
-						updateBlock,
-						editorEnglish,
-						id,
-						setRuntimeStats,
-						setDisabled
-					)
-					.catch((error) => console.log(error));
-
-				// editorEnglish.updateBlock(id, {
-				// 	content: [
-				// 		{
-				// 			type: 'text',
-				// 			text: '',
-				// 			styles: { textColor: 'red' },
-				// 		},
-				// 	],
-				// });
+				onSend(prompt, (text: string) => {
+					updateBlock(editorEnglish, id, text, 'red');
+				});
 			}
 		}
 	};
@@ -85,17 +175,6 @@ const Demo = () => {
 				const prompt =
 					"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
 					text;
-				chat_ui
-					.onGenerateCorrection(
-						prompt,
-						updateMessage,
-						addBelowBlock,
-						editorFrench,
-						id,
-						setRuntimeStats,
-						setDisabled2
-					)
-					.catch((error) => console.log(error));
 			}
 		}
 	};
@@ -144,7 +223,8 @@ const Demo = () => {
 	const updateBlock = (
 		editor: BlockNoteEditor,
 		blockId: string,
-		text: string
+		text: string,
+		textColor: string
 	) => {
 		const block = editor.getBlock(blockId);
 		if (block) {
@@ -153,7 +233,7 @@ const Demo = () => {
 					{
 						type: 'text',
 						text: text,
-						styles: { textColor: 'red' },
+						styles: { textColor: textColor },
 					},
 				],
 			});
@@ -187,6 +267,35 @@ const Demo = () => {
 
 	return (
 		<>
+			<div>{test}</div>
+			<button onClick={resetChat}>Send</button>
+			<button onClick={loadEngine}>Load</button>
+			<div>{progress}</div>
+			<div className='chatui-select-wrapper'>
+				{/* <div>
+					{Object.values(Model).map((model, index) => (
+						<div key={index}>
+							<div>{model}</div>
+							<span>'test'</span>
+						</div>
+					))}
+				</div> */}
+				<select
+					id='chatui-select'
+					value={selectedModel}
+					onChange={(selectedModel) => {
+						setSelectedModel(selectedModel.target.value as Model);
+						resetEngineAndChatHistory();
+					}}
+				>
+					{Object.values(Model).map((model) => (
+						<option key={model} value={model}>
+							{MODEL_DESCRIPTIONS[model].icon}{' '}
+							{MODEL_DESCRIPTIONS[model].displayName}
+						</option>
+					))}
+				</select>
+			</div>
 			<div className='translate-button'>
 				{disabled && <p>Document en cours de traduction ...</p>}
 				{disabled2 && <p>Document en cours de corrrection ...</p>}

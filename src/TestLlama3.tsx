@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { appConfig } from './app-config'
+import { appConfig } from './app-config';
 import * as webllm from '@mlc-ai/web-llm';
 import './App.css';
 
