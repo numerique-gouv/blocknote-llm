@@ -102,8 +102,7 @@ const Demo = () => {
 
 	const Resume = async () => {
 		const idBlocks = getEditorBlocks(editorFrench);
-		let document = []
-		resume = [];
+		const resume = [];
 		let text = '';
 		let titre1 = "";
 		let titre2 = "";
@@ -125,12 +124,11 @@ const Demo = () => {
 				// else if (block.props.level === 3){
 				// 	titre3 = transformateurJsonToString(block);
 				// }
-				i += 1;
 				if (text !== '') {
-					const prompt =
+					let prompt =
 						" Résume ce texte : " +
 						text;
-					chat_ui
+					let resume_texte = chat_ui
 					.onGenerateCorrection(
 						prompt,
 						updateMessage,
@@ -141,8 +139,9 @@ const Demo = () => {
 						setDisabled2
 					)
 					.catch((error) => console.log(error));
+					resume.push(resume_texte);
 			}
-				resume.push(text);
+				
 
 			} 
 			
@@ -150,6 +149,26 @@ const Demo = () => {
 				text += transformateurJsonToString(block);
 			}
 		}
+		for (const res of resume){
+			if (res !== '') {
+				let prompt =
+						" Résume ce texte : " +
+						text;
+					let resume_tot = chat_ui
+					.onGenerateCorrection(
+						prompt,
+						updateMessage,
+						addBelowBlock,
+						editorFrench,
+						id,
+						setRuntimeStats,
+						setDisabled2
+					)
+					.catch((error) => console.log(error));
+				
+			}
+		}
+		return resume_tot;
 	};
 
 	const getEditorBlocks = (editor: BlockNoteEditor) => {
