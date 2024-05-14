@@ -31,7 +31,7 @@ async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
 
 function translateBlocks(blocks: Block[], editor: BlockNoteEditor) {
     for (const block of blocks) {
-        
+        translateSingleBlock(block, editor)
     }
 }
 
