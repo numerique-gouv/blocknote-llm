@@ -20,12 +20,6 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": [
-		"src",
-		"src_v2/Demo2.tsx",
-		"src_v2/workerLlama.ts",
-		"src_v2/models.ts",
-		"src/app-config.ts"
-	],
+	"include": ["src", "src/models.ts", "src/app-config.ts"],
 	"references": [{ "path": "./tsconfig.node.json" }]
 }

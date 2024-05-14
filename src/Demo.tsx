@@ -6,15 +6,13 @@ import './App.css';
 import {
 	ChatCompletionMessageParam,
 	CreateWebWorkerEngine,
-	Engine,
 	EngineInterface,
 	InitProgressReport,
 } from '@mlc-ai/web-llm';
-import ChatUI from './ChatUI';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
 import { BlockNoteEditor } from '@blocknote/core';
 import { appConfig } from './app-config';
-import { MODEL_DESCRIPTIONS, Model } from '../src_v2/models';
+import { MODEL_DESCRIPTIONS, Model } from './models';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -27,11 +25,7 @@ const Demo = () => {
 	const [disabled, setDisabled] = useState<boolean>(false);
 	const [disabled2, setDisabled2] = useState<boolean>(false);
 	const [translation, setTranslation] = useState<boolean>(false);
-	//const [translationCount, setTranslationCount] = useState<number>(0);
 
-	const [messages, setMessages] = useState<{ kind: string; text: string }[]>(
-		[]
-	);
 	const [runtimeStats, setRuntimeStats] = useState('');
 
 	const editorFrench = useCreateBlockNote();
@@ -48,7 +42,7 @@ const Demo = () => {
 		console.log('Loading engine');
 
 		const engine: EngineInterface = await CreateWebWorkerEngine(
-			new Worker(new URL('./workerLlama.ts', import.meta.url), {
+			new Worker(new URL('./worker.ts', import.meta.url), {
 				type: 'module',
 			}),
 			selectedModel,
@@ -147,7 +141,11 @@ const Demo = () => {
 	};
 
 	const translate = async () => {
-		const idBlock = await duplicateEditor(editorFrench, editorEnglish);
+		const idBlock = await duplicateEditor(
+			editorFrench,
+			editorEnglish,
+			'Traduction en cours...'
+		);
 		for (const id of idBlock) {
 			const block = editorFrench.getBlock(id);
 			let text = '';
@@ -164,7 +162,11 @@ const Demo = () => {
 	};
 
 	const Correction = async () => {
-		const idBlocks = getEditorBlocks(editorFrench);
+		const idBlocks = await duplicateEditor(
+			editorFrench,
+			editorEnglish,
+			'Correction en cours...'
+		);
 		for (const id of idBlocks) {
 			const block = editorFrench.getBlock(id);
 			let text = '';
@@ -175,6 +177,9 @@ const Demo = () => {
 				const prompt =
 					"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
 					text;
+				onSend(prompt, (text: string) =>
+					updateBlock(editorEnglish, id, text, 'red')
+				);
 			}
 		}
 	};
@@ -193,7 +198,8 @@ const Demo = () => {
 
 	const duplicateEditor = async (
 		initialEditor: BlockNoteEditor,
-		duplicateEditor: BlockNoteEditor
+		duplicateEditor: BlockNoteEditor,
+		placeholder: string
 	) => {
 		const idBlocks: string[] = [];
 		await initialEditor.tryParseMarkdownToBlocks(''); //Fix bug
@@ -209,7 +215,7 @@ const Demo = () => {
 					content: [
 						{
 							type: 'text',
-							text: 'Traduction en cours ...',
+							text: placeholder,
 							styles: { textColor: 'red' },
 						},
 					],
@@ -224,7 +230,7 @@ const Demo = () => {
 		editor: BlockNoteEditor,
 		blockId: string,
 		text: string,
-		textColor: string
+		textColor: string = 'black'
 	) => {
 		const block = editor.getBlock(blockId);
 		if (block) {
@@ -243,7 +249,8 @@ const Demo = () => {
 	const addBelowBlock = (
 		editor: BlockNoteEditor,
 		blockId: string,
-		text: string
+		text: string,
+		textColor: string = 'black'
 	) => {
 		const block = editor.getBlock(blockId);
 		if (block) {
@@ -254,7 +261,7 @@ const Demo = () => {
 							{
 								type: 'text',
 								text: text,
-								styles: { textColor: 'red' },
+								styles: { textColor: textColor },
 							},
 						],
 					},
@@ -315,6 +322,7 @@ const Demo = () => {
 						disabled={disabled2}
 						onClick={() => {
 							setDisabled2(true);
+							setTranslation(true);
 							// setTranslation(true);
 							Correction();
 						}}
