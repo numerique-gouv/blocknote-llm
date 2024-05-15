@@ -190,7 +190,7 @@ const Demo = () => {
           }
         }
       } else {
-        texte3 += transformateurJsonToString(block);
+        texte3 = transformateurJsonToString(block) + texte3;
       }
 	}
     if (text + texte1 + texte2 + texte3 !== "") {
