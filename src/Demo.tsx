@@ -113,30 +113,32 @@ const Demo = () => {
 
     for (const id of idBlocks) {
       const block = editorFrench.getBlock(id);
-      if (block.type === "heading") {
-        if (block.props.level === 3) {
-          titre3 = transformateurJsonToString(block);
-          if (texte3 !== "") {
-            let prompt =
-              " Résume ce texte si besoin: " +
-              texte3 +
-              " sachant que c'est une sous-partie de :" +
-              titre3;
-            texte2 += "biberon2";
-            // `
-            // ` +
-            // chat_ui
-            // .onGenerateCorrection(
-            // 	prompt,
-            // 	updateMessage,
-            // 	addBelowBlock,
-            // 	editorFrench,
-            // 	id,
-            // 	setRuntimeStats,
-            // 	setDisabled2
-            // )
-            // .catch((error) => console.log(error));
-            // texte3 = '';
+      if (block) {
+        if (block.type === "heading") {
+          if (block.props.level === 3) {
+            titre3 = transformateurJsonToString(block);
+            if (texte3 !== "") {
+              let prompt =
+                " Résume ce texte si besoin: " +
+                texte3 +
+                " sachant que c'est une sous-partie de :" +
+                titre3;
+              texte2 += "biberon2";
+              // `
+              // ` +
+              // chat_ui
+              // .onGenerateCorrection(
+              // 	prompt,
+              // 	updateMessage,
+              // 	addBelowBlock,
+              // 	editorFrench,
+              // 	id,
+              // 	setRuntimeStats,
+              // 	setDisabled2
+              // )
+              // .catch((error) => console.log(error));
+              // texte3 = '';
+            }
           }
         } else if (block.props.level === 2) {
           if (texte2 + texte3 !== "") {
@@ -190,9 +192,9 @@ const Demo = () => {
           }
         }
       } else {
-        texte3 = transformateurJsonToString(block) + texte3;
+        texte3 = transformateurJsonToString(block) + "/n" + texte3;
       }
-	}
+    }
     if (text + texte1 + texte2 + texte3 !== "") {
       let prompt =
         " Résume ce texte si besoin: " + text + texte1 + texte2 + texte3;
@@ -210,7 +212,6 @@ const Demo = () => {
       // )
       // .catch((error) => console.log(error));
     }
-
   };
 
   const getEditorBlocks = (editor: BlockNoteEditor) => {
