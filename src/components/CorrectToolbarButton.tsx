@@ -6,20 +6,12 @@ import {
 } from "@blocknote/react";
 import { useState } from "react";
 
-function translateString(text: string) {
-
-}
-
-
-
-
 // Custom Formatting Toolbar Button to translate text to English
-export function TranslateToolbarButton({ onSend }) {
+export function CorrectToolbarButton({ onSend }) {
     const editor = useBlockNoteEditor();
 
-    async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
+    async function correctSingleBlock (block: Block, editor: BlockNoteEditor) {
         const markdownBlock = await editor.blocksToMarkdownLossy([block])
-        const translatedMarkdownBlockPromise = translateString(markdownBlock)
 
         const translateProps = block.props
         translateProps["textColor"] = "red"
@@ -33,7 +25,7 @@ export function TranslateToolbarButton({ onSend }) {
             "after"
         )
         await onSend(
-            "Traduis ce texte en anglais, en conservant le formatage en markdown : " + markdownBlock,
+            "Corrige ce texte, en conservant le formatage en markdown : " + markdownBlock,
             async (markdownText: string) => {
                 try {
                     const convertedBlocks =  await editor.tryParseMarkdownToBlocks(markdownText)
@@ -48,9 +40,9 @@ export function TranslateToolbarButton({ onSend }) {
         )
     }
 
-    async function translateBlocks(blocks: Block[], editor: BlockNoteEditor) {
+    async function correctBlocks(blocks: Block[], editor: BlockNoteEditor) {
         for (const block of blocks) {
-            await translateSingleBlock(block, editor)
+            await correctSingleBlock(block, editor)
         }
     }
 
@@ -68,11 +60,11 @@ export function TranslateToolbarButton({ onSend }) {
 
     return (
         <ToolbarButton
-        mainTooltip={"Traduire"}
+        mainTooltip={"Corriger"}
         onClick={() => {
-            translateBlocks(editor.getSelection()?.blocks, editor)
+            correctBlocks(editor.getSelection()?.blocks, editor)
         }}>
-        Traduire
+        Corriger
         </ToolbarButton>
     );
 }

@@ -16,6 +16,7 @@ import { BlockNoteEditor } from '@blocknote/core';
 import { CustomFormattingToolbar } from './components/CustomFormattingToolbar';
 import { appConfig } from './app-config';
 import { MODEL_DESCRIPTIONS, Model } from '../src_v2/models';
+import React from 'react';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -286,7 +287,7 @@ const Demo = () => {
 					value={selectedModel}
 					onChange={(selectedModel) => {
 						setSelectedModel(selectedModel.target.value as Model);
-						resetEngineAndChatHistory();
+						// resetEngineAndChatHistory();
 					}}
 				>
 					{Object.values(Model).map((model) => (
@@ -333,7 +334,7 @@ const Demo = () => {
                     formattingToolbar={false}>
                     <FormattingToolbarController
                     formattingToolbar={() => (
-                        <CustomFormattingToolbar/>
+                        <CustomFormattingToolbar onSend={ onSend }/>
                     )}/>
                 </BlockNoteView>
 				{translation && (

@@ -1,13 +1,15 @@
 import { BasicTextStyleButton, BlockTypeSelect, ColorStyleButton, CreateLinkButton, FormattingToolbar, ImageCaptionButton, NestBlockButton, ReplaceImageButton, TextAlignButton, UnnestBlockButton } from "@blocknote/react";
 import { TranslateToolbarButton } from "./TranslateToolbarButton";
+import { CorrectToolbarButton } from "./CorrectToolbarButton";
 
-export function CustomFormattingToolbar() {
+export function CustomFormattingToolbar({ onSend }) {
     return (
         <FormattingToolbar>
             <BlockTypeSelect key={"blockTypeSelect"} />
     
             {/* Extra button to toggle blue text & background */}
-            <TranslateToolbarButton key={"translateButton"} />
+            <TranslateToolbarButton key={"translateButton"} onSend={onSend}/>
+            <CorrectToolbarButton key={"correctButton"} onSend={onSend}/>
     
             <ImageCaptionButton key={"imageCaptionButton"} />
             <ReplaceImageButton key={"replaceImageButton"} />
