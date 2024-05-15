@@ -11,6 +11,13 @@ const models = [
 	'CroissantLLMChat-v0.1-q4f16_1',
 	'CroissantLLMChat-v0.1-q4f32_1',
 ];
+prebuiltAppConfig.useIndexedDBCache = true;
+
+if (prebuiltAppConfig.useIndexedDBCache) {
+	console.log('Using IndexedDB Cache');
+} else {
+	console.log('Using Cache API');
+}
 
 export const appConfig = {
 	model_list: [

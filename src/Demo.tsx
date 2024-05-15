@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import '@blocknote/core/fonts/inter.css';
 import { BlockNoteView, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
@@ -8,11 +8,18 @@ import {
 	CreateWebWorkerEngine,
 	EngineInterface,
 	InitProgressReport,
+	hasModelInCache,
 } from '@mlc-ai/web-llm';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
 import { BlockNoteEditor } from '@blocknote/core';
 import { appConfig } from './app-config';
 import { MODEL_DESCRIPTIONS, Model } from './models';
+import {
+	addBlock,
+	duplicateEditor,
+	getEditorBlocks,
+	updateBlock,
+} from './utils/blockManipulation';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -22,11 +29,36 @@ const Demo = () => {
 		Model.CROISSANT_LLM_CHAT_V0_1_Q4F16_1
 	);
 	const [isGenerating, setIsGenerating] = useState(false);
-	const [disabled, setDisabled] = useState<boolean>(false);
-	const [disabled2, setDisabled2] = useState<boolean>(false);
+	const [currentProccess, setCurrentProcess] = useState<
+		'translation' | 'correction' | 'resume' | null
+	>(null);
 	const [translation, setTranslation] = useState<boolean>(false);
 
 	const [runtimeStats, setRuntimeStats] = useState('');
+
+	const [modelsState, setModelsState] = useState<{ [key: string]: boolean }>(
+		{}
+	);
+
+	const IS_MODEL_STATUS_CHECK_ENABLED = false;
+
+	const updateModelStatus = async () => {
+		console.log('Checking model status');
+		Object.values(Model).forEach(async (model) => {
+			const isInCache = await hasModelInCache(model, appConfig);
+			console.log(`${model} in cache: ${isInCache}`);
+			setModelsState((prev) => ({
+				...prev,
+				[model]: isInCache,
+			}));
+		});
+	};
+
+	useEffect(() => {
+		if (IS_MODEL_STATUS_CHECK_ENABLED) {
+			updateModelStatus();
+		}
+	}, []);
 
 	const editorFrench = useCreateBlockNote();
 	const editorEnglish = useCreateBlockNote({
@@ -34,7 +66,7 @@ const Demo = () => {
 	});
 
 	const initProgressCallback = (report: InitProgressReport) => {
-		console.log(report);
+		//console.log(report);
 		setProgress(report.text);
 	};
 
@@ -100,10 +132,12 @@ const Demo = () => {
 				}
 				updateEditor(assistantMessage);
 			}
-
+			const text = await loadedEngine.getMessage();
 			setIsGenerating(false);
+			setCurrentProcess(null);
 			setRuntimeStats(await loadedEngine.runtimeStatsText());
 			console.log(await loadedEngine.runtimeStatsText());
+			return text;
 		} catch (e) {
 			setIsGenerating(false);
 			console.log('EXECPTION');
@@ -141,6 +175,7 @@ const Demo = () => {
 	};
 
 	const translate = async () => {
+		//let loadedEngine = engine;
 		const idBlock = await duplicateEditor(
 			editorFrench,
 			editorEnglish,
@@ -153,8 +188,21 @@ const Demo = () => {
 				text = transformateurJsonToString(block);
 			}
 			if (text !== '') {
+				// setIsGenerating(true);
+				// if (!loadedEngine) {
+				// 	console.log('Engine not loaded');
+
+				// 	try {
+				// 		loadedEngine = await loadEngine();
+				// 	} catch (error) {
+				// 		setIsGenerating(false);
+				// 		console.log(error);
+				// 		setTest('Could not load the model because ' + error);
+				// 		return;
+				// 	}
+				// }
 				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				onSend(prompt, (text: string) => {
+				await onSend(prompt, (text: string) => {
 					updateBlock(editorEnglish, id, text, 'red');
 				});
 			}
@@ -177,122 +225,116 @@ const Demo = () => {
 				const prompt =
 					"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
 					text;
-				onSend(prompt, (text: string) =>
+				await onSend(prompt, (text: string) =>
 					updateBlock(editorEnglish, id, text, 'red')
 				);
 			}
 		}
 	};
 
-	const getEditorBlocks = (editor: BlockNoteEditor) => {
-		const idBlocks: string[] = [];
-		editor.forEachBlock((block) => {
-			const text = transformateurJsonToString(block);
-			if (text !== '') {
-				idBlocks.push(block.id);
-			}
-			return true;
-		});
-		return idBlocks;
-	};
+	const Resume = async () => {
+		const idBlocks = getEditorBlocks(editorFrench).reverse();
+		console.log('test');
+		let texte3 = '';
+		let titre1 = '';
+		let titre2 = '';
+		let titre3 = '';
+		let texte2 = '';
+		let texte1 = '';
+		let text = '';
 
-	const duplicateEditor = async (
-		initialEditor: BlockNoteEditor,
-		duplicateEditor: BlockNoteEditor,
-		placeholder: string
-	) => {
-		const idBlocks: string[] = [];
-		await initialEditor.tryParseMarkdownToBlocks(''); //Fix bug
-		duplicateEditor.replaceBlocks(
-			duplicateEditor.document,
-			initialEditor.document
-		);
-		initialEditor.forEachBlock((block) => {
-			const text = transformateurJsonToString(block);
-			if (text !== '') {
-				idBlocks.push(block.id);
-				duplicateEditor.updateBlock(block.id, {
-					content: [
-						{
-							type: 'text',
-							text: placeholder,
-							styles: { textColor: 'red' },
-						},
-					],
-				});
-			}
-			return true;
-		});
-		return idBlocks;
-	};
+		for (const id of idBlocks) {
+			const block = editorFrench.getBlock(id);
+			if (block) {
+				if (block.type === 'heading') {
+					if (block.props.level === 3) {
+						titre3 = transformateurJsonToString(block);
+						if (texte3 !== '') {
+							const prompt =
+								' Résume ce texte si besoin: ' +
+								texte3 +
+								" sachant que c'est une sous-partie de :" +
+								titre3;
+							const res = await onSend(prompt, (text: string) => {});
 
-	const updateBlock = (
-		editor: BlockNoteEditor,
-		blockId: string,
-		text: string,
-		textColor: string = 'black'
-	) => {
-		const block = editor.getBlock(blockId);
-		if (block) {
-			editor.updateBlock(blockId, {
-				content: [
-					{
-						type: 'text',
-						text: text,
-						styles: { textColor: textColor },
-					},
-				],
-			});
+							texte2 += res;
+						}
+					} else if (block.props.level === 2) {
+						if (texte2 + texte3 !== '') {
+							titre2 = transformateurJsonToString(block);
+							const prompt =
+								' Résume ce texte si besoin: ' +
+								texte2 +
+								texte3 +
+								" sachant que c'est une sous-partie de :" +
+								titre2;
+							const res = await onSend(prompt, (text: string) => {});
+							texte1 += res;
+
+							texte2 = '';
+							texte3 = '';
+						}
+					} else if (block.props.level === 1) {
+						if (texte1 + texte2 + texte3 !== '') {
+							titre1 = transformateurJsonToString(block);
+							const prompt =
+								' Résume ce texte si besoin: ' +
+								texte1 +
+								texte2 +
+								texte3 +
+								" sachant que c'est une sous-partie de :" +
+								titre1;
+							const res = await onSend(prompt, (text: string) => {});
+							text = res;
+
+							texte1 = '';
+							texte2 = '';
+							texte3 = '';
+						}
+					}
+				} else {
+					texte3 = transformateurJsonToString(block) + texte3;
+				}
+			}
 		}
-	};
-
-	const addBelowBlock = (
-		editor: BlockNoteEditor,
-		blockId: string,
-		text: string,
-		textColor: string = 'black'
-	) => {
-		const block = editor.getBlock(blockId);
-		if (block) {
-			editor.insertBlocks(
-				[
-					{
-						content: [
-							{
-								type: 'text',
-								text: text,
-								styles: { textColor: textColor },
-							},
-						],
-					},
-				],
-				blockId,
-				'after'
-			);
+		if (text + texte1 + texte2 + texte3 !== '') {
+			const prompt =
+				' Résume ce texte si besoin: ' + text + texte1 + texte2 + texte3;
+			const res = await onSend(prompt, (text: string) => {});
+			console.log(res);
+			if (res) {
+				addBlock(
+					editorFrench,
+					idBlocks[idBlocks.length - 1],
+					'Voici le résumé du document : ' + res,
+					'red',
+					'before'
+				);
+			}
+			return text + texte1 + texte2 + texte3;
 		}
 	};
 
 	return (
 		<>
 			<div>{test}</div>
-			<button onClick={resetChat}>Send</button>
-			<button onClick={loadEngine}>Load</button>
-			<div>{progress}</div>
+			{/* <button onClick={resetChat}>Send</button> */}
+
+			{/*<div>
+				{Object.values(Model).map((model, index) => (
+					<div key={index}>
+						<div>{model}</div>
+						<span>{modelsState[model] ? 'Cached' : 'Not Cached'}</span>
+					</div>
+				))}
+				</div>*/}
 			<div className='chatui-select-wrapper'>
-				{/* <div>
-					{Object.values(Model).map((model, index) => (
-						<div key={index}>
-							<div>{model}</div>
-							<span>'test'</span>
-						</div>
-					))}
-				</div> */}
 				<select
 					id='chatui-select'
 					value={selectedModel}
 					onChange={(selectedModel) => {
 						setSelectedModel(selectedModel.target.value as Model);
-						resetEngineAndChatHistory();
+						//resetEngineAndChatHistory();
 					}}
 				>
 					{Object.values(Model).map((model) => (
@@ -303,15 +345,31 @@ const Demo = () => {
 					))}
 				</select>
 			</div>
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					gap: '20px',
+					marginBottom: '20px',
+				}}
+			>
+				<button onClick={loadEngine}>Load</button>
+				<div>{progress}</div>
+			</div>
 			<div className='translate-button'>
-				{disabled && <p>Document en cours de traduction ...</p>}
-				{disabled2 && <p>Document en cours de corrrection ...</p>}
+				{currentProccess === 'translation' && (
+					<p>Document en cours de traduction ...</p>
+				)}
+				{currentProccess === 'correction' && (
+					<p>Document en cours de corrrection ...</p>
+				)}
 				{runtimeStats && <p>Vitesse : {runtimeStats}</p>}
 				<div style={{ display: 'flex', gap: '20px' }}>
 					<button
-						disabled={disabled}
+						disabled={currentProccess !== null}
 						onClick={() => {
-							setDisabled(true);
+							setCurrentProcess('translation');
 							setTranslation(true);
 							translate();
 						}}
@@ -319,15 +377,24 @@ const Demo = () => {
 						Traduire le document
 					</button>
 					<button
-						disabled={disabled2}
+						disabled={currentProccess !== null}
 						onClick={() => {
-							setDisabled2(true);
+							setCurrentProcess('correction');
 							setTranslation(true);
 							// setTranslation(true);
 							Correction();
 						}}
 					>
 						Corriger le document
+					</button>
+					<button
+						disabled={currentProccess !== null}
+						onClick={() => {
+							setCurrentProcess('resume');
+							Resume();
+						}}
+					>
+						Resumer le document
 					</button>
 				</div>
 			</div>
