@@ -102,13 +102,20 @@ const Demo = () => {
     const systemMessage: ChatCompletionMessageParam = {
       role: "system",
       content:
-        "You are a professional translator. Translate text from french to english without introduction, explanation or context, just write the traduction.",
+        "You are a professional translator . Translate text from french to english without introduction, explanation or context, just write the traduction. Don't say \"here is the translation\" or \"the translation is\", just write the translation.",
     };
+
 
     const userMessage: ChatCompletionMessageParam = {
       role: "user",
-      content: prompt,
+      content: prompt ,
     };
+
+	const assistantMessage2: ChatCompletionMessageParam = {
+		role: "assistant",
+		content: "voici la traduction :",
+	};
+
     setTest("");
 
     if (!loadedEngine) {
@@ -127,7 +134,7 @@ const Demo = () => {
     try {
       const completion = await loadedEngine.chat.completions.create({
         stream: true,
-        messages: [systemMessage, userMessage],
+        messages: [systemMessage, userMessage, ],
       });
 
       let assistantMessage = "";
