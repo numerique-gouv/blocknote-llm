@@ -341,22 +341,6 @@ const Demo = () => {
 					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
 				)}
 			</div>
-			<div className='blocknote-container'>
-				<BlockNoteView
-					editor={editorFrench}
-					className={
-						translation ? 'blocknote-french' : 'blocknote-french full-width'
-					}
-                    formattingToolbar={false}>
-                    <FormattingToolbarController
-                    formattingToolbar={() => (
-                        <CustomFormattingToolbar/>
-                    )}/>
-			
-				{translation && (
-					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
-				)}
-			</div>
 		</>
 	);
 };
