@@ -111,11 +111,6 @@ const Demo = () => {
       content: prompt ,
     };
 
-	const assistantMessage2: ChatCompletionMessageParam = {
-		role: "assistant",
-		content: "voici la traduction :",
-	};
-
     setTest("");
 
     if (!loadedEngine) {
@@ -236,7 +231,7 @@ const Demo = () => {
       }
       if (text !== "") {
         const prompt =
-          "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
+          "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais : " +
           text;
         await onSend(prompt, (text: string) =>
           updateBlock(editorEnglish, id, text, "red")
