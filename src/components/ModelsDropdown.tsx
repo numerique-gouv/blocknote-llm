@@ -1,7 +1,7 @@
 import * as webllm from '@mlc-ai/web-llm';
 import { useEffect, useState } from 'react';
 
-import { MODEL_DESCRIPTIONS, Model } from '../../src_v2/models';
+import { MODEL_DESCRIPTIONS, Model } from '../models';
 import { appConfig } from '../app-config';
 import useChatStore from '../hooks/useChatStore';
 
