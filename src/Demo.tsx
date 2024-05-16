@@ -102,7 +102,7 @@ const Demo = () => {
     const systemMessage: ChatCompletionMessageParam = {
       role: "system",
       content:
-        "You are a professional translator. Translate text from french to english without explanation or context, just write the traduction.",
+        "You are a professional translator. Translate text from french to english without introduction, explanation or context, just write the traduction.",
     };
 
     const userMessage: ChatCompletionMessageParam = {
