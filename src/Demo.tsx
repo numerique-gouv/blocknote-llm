@@ -91,7 +91,7 @@ const Demo = () => {
     textColor?: string
   ) => void;
 
-  const onSend = async (prompt: string, updateEditor: updateEditor) => {
+  const onSend = async (prompt: string, systemprompt : string, updateEditor: updateEditor) => {
     if (prompt === "") {
       return;
     }
@@ -102,8 +102,8 @@ const Demo = () => {
     const systemMessage: ChatCompletionMessageParam = {
       role: "system",
       content:
-        "You are a professional translator . Translate text from french to english without introduction, explanation or context, just write the traduction. Don't say \"here is the translation\" or \"the translation is\", just write the translation.",
-    };
+        systemprompt,
+	};
 
 
     const userMessage: ChatCompletionMessageParam = {
@@ -189,6 +189,8 @@ const Demo = () => {
       editorEnglish,
       "Traduction en cours..."
     );
+	const systemprompt =   "You are a professional translator . Translate text from french to english without introduction, explanation or context, just write the traduction. Don't say \"here is the translation\" or \"the translation is\", just write the translation.";
+    
     for (const id of idBlock) {
       const block = editorFrench.getBlock(id);
       let text = "";
@@ -210,7 +212,7 @@ const Demo = () => {
         // 	}
         // }
         const prompt = "Tu peux me traduire ce texte en anglais : " + text;
-        await onSend(prompt, (text: string) => {
+        await onSend(prompt, systemprompt, (text: string) => {
           updateBlock(editorEnglish, id, text, "red");
         });
       }
@@ -223,6 +225,7 @@ const Demo = () => {
       editorEnglish,
       "Correction en cours..."
     );
+	const systemprompt = "Traduis ce texte mot pour mot en corrigeant les fautes d'orthographe en francais."
     for (const id of idBlocks) {
       const block = editorFrench.getBlock(id);
       let text = "";
@@ -231,9 +234,9 @@ const Demo = () => {
       }
       if (text !== "") {
         const prompt =
-          "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais : " +
+          "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais sans introduction, ni explication, ni contexte, il suffit d'écrire la correction." +
           text;
-        await onSend(prompt, (text: string) =>
+        await onSend(prompt, systemprompt, (text: string) =>
           updateBlock(editorEnglish, id, text, "red")
         );
       }
