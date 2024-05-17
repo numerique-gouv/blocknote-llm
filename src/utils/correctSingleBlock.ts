@@ -10,7 +10,7 @@ async function correctSingleBlock (sourceBlock: Block, destBlock: Block, sourceE
     }
 
     await onSend(
-        "Le texte suivant contient des fautes, corrige-les : " + text,
+        "Ce texte contient des fautes, corrige-les sans jamais changer les mots qu’il contient ni la ponctuation : " + text,
         async (correctedText: string) => {
             try {                    
                 const [sourceContent, correctedContent] =  diffText(text, correctedText)
