@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react';
 import '@blocknote/core/fonts/inter.css';
-import { BlockNoteView, useCreateBlockNote, FormattingToolbar, FormattingToolbarController, BlockTypeSelect, ImageCaptionButton, ReplaceImageButton, BasicTextStyleButton, TextAlignButton, ColorStyleButton, NestBlockButton, UnnestBlockButton, CreateLinkButton } from '@blocknote/react';
+import {
+	BlockNoteView,
+	useCreateBlockNote,
+	FormattingToolbar,
+	FormattingToolbarController,
+	BlockTypeSelect,
+	ImageCaptionButton,
+	ReplaceImageButton,
+	BasicTextStyleButton,
+	TextAlignButton,
+	ColorStyleButton,
+	NestBlockButton,
+	UnnestBlockButton,
+	CreateLinkButton,
+} from '@blocknote/react';
 import '@blocknote/react/style.css';
 import './App.css';
 import {
@@ -93,13 +107,15 @@ const Demo = () => {
 		textColor?: string
 	) => void;
 
-	const onSend = async (prompt: string, updateEditor: updateEditor) => {
+	const onSend = async (
+		loadedEngine: EngineInterface,
+		prompt: string,
+		updateEditor: updateEditor
+	) => {
 		if (prompt === '') {
 			return;
 		}
 		setIsGenerating(true);
-
-		let loadedEngine = engine;
 
 		const userMessage: ChatCompletionMessageParam = {
 			role: 'user',
@@ -107,18 +123,18 @@ const Demo = () => {
 		};
 		setTest('');
 
-		if (!loadedEngine) {
-			console.log('Engine not loaded');
+		// if (!loadedEngine) {
+		// 	console.log('Engine not loaded');
 
-			try {
-				loadedEngine = await loadEngine();
-			} catch (error) {
-				setIsGenerating(false);
-				console.log(error);
-				setTest('Could not load the model because ' + error);
-				return;
-			}
-		}
+		// 	try {
+		// 		loadedEngine = await loadEngine();
+		// 	} catch (error) {
+		// 		setIsGenerating(false);
+		// 		console.log(error);
+		// 		setTest('Could not load the model because ' + error);
+		// 		return;
+		// 	}
+		// }
 
 		try {
 			const completion = await loadedEngine.chat.completions.create({
@@ -177,7 +193,7 @@ const Demo = () => {
 	};
 
 	const translate = async () => {
-		//let loadedEngine = engine;
+		let loadedEngine = engine;
 		const idBlock = await duplicateEditor(
 			editorFrench,
 			editorEnglish,
@@ -190,21 +206,21 @@ const Demo = () => {
 				text = transformateurJsonToString(block);
 			}
 			if (text !== '') {
-				// setIsGenerating(true);
-				// if (!loadedEngine) {
-				// 	console.log('Engine not loaded');
+				setIsGenerating(true);
+				if (!loadedEngine) {
+					console.log('Engine not loaded');
 
-				// 	try {
-				// 		loadedEngine = await loadEngine();
-				// 	} catch (error) {
-				// 		setIsGenerating(false);
-				// 		console.log(error);
-				// 		setTest('Could not load the model because ' + error);
-				// 		return;
-				// 	}
-				// }
+					try {
+						loadedEngine = await loadEngine();
+					} catch (error) {
+						setIsGenerating(false);
+						console.log(error);
+						setTest('Could not load the model because ' + error);
+						return;
+					}
+				}
 				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				await onSend(prompt, (text: string) => {
+				await onSend(loadedEngine, prompt, (text: string) => {
 					updateBlock(editorEnglish, id, text, 'red');
 				});
 			}
@@ -224,7 +240,13 @@ const Demo = () => {
 				text = transformateurJsonToString(block);
 			}
 			if (text !== '') {
-                await correctSingleBlock(block, editorEnglish.getBlock(id), editorFrench, editorEnglish, onSend)
+				await correctSingleBlock(
+					block,
+					editorEnglish.getBlock(id),
+					editorFrench,
+					editorEnglish,
+					onSend
+				);
 				// const prompt =
 				// 	"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
 				// 	text;
@@ -401,18 +423,20 @@ const Demo = () => {
 					</button>
 				</div>
 			</div>
-            <div className='blocknote-container'>
+			<div className='blocknote-container'>
 				<BlockNoteView
 					editor={editorFrench}
 					className={
 						translation ? 'blocknote-french' : 'blocknote-french full-width'
 					}
-                    formattingToolbar={false}>
-                    <FormattingToolbarController
-                    formattingToolbar={() => (
-                        <CustomFormattingToolbar onSend={ onSend }/>
-                    )}/>
-                </BlockNoteView>
+					formattingToolbar={false}
+				>
+					<FormattingToolbarController
+						formattingToolbar={() => (
+							<CustomFormattingToolbar onSend={onSend} />
+						)}
+					/>
+				</BlockNoteView>
 				{translation && (
 					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
 				)}
