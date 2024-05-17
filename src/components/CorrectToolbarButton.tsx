@@ -5,44 +5,27 @@ import {
     useEditorContentOrSelectionChange,
 } from "@blocknote/react";
 import { useState } from "react";
+import diffText from "../utils/diffText";
+import correctSingleBlock from "../utils/correctSingleBlock";
 
-// Custom Formatting Toolbar Button to translate text to English
+// Custom Formatting Toolbar Button to correct the selected text
 export function CorrectToolbarButton({ onSend }) {
     const editor = useBlockNoteEditor();
 
-    async function correctSingleBlock (block: Block, editor: BlockNoteEditor) {
-        const markdownBlock = await editor.blocksToMarkdownLossy([block])
-
-        const translateProps = block.props
-        translateProps["textColor"] = "red"
-        
-        const newBlocks = editor.insertBlocks(
-            [{
-                "props": translateProps,
-                "type": block.type
-            }], 
-            block.id, 
-            "after"
-        )
-        await onSend(
-            "Corrige ce texte, en conservant le formatage en markdown : " + markdownBlock,
-            async (markdownText: string) => {
-                try {
-                    const convertedBlocks =  await editor.tryParseMarkdownToBlocks(markdownText)
-                    editor.updateBlock(newBlocks[0].id, {"content": convertedBlocks[0].content})
-                } catch (error) {
-                    console.log(error)
-                }
-                // const convertedBlock = editor.tryParseMarkdownToBlocks(markdownText)[0]
-                
-                // console.log(newBlocks[0].id)
-            }
-        )
-    }
-
     async function correctBlocks(blocks: Block[], editor: BlockNoteEditor) {
         for (const block of blocks) {
-            await correctSingleBlock(block, editor)
+            const correctProps = block.props
+            correctProps["textColor"] = "blue"
+            const newBlocks = editor.insertBlocks(
+                [{
+                    "props": correctProps,
+                    "type": block.type
+                }], 
+                block.id, 
+                "after"
+            )
+            const newBlock = newBlocks[0]
+            await correctSingleBlock(block, newBlock, editor, editor, onSend)
         }
     }
 
