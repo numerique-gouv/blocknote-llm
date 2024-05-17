@@ -18,8 +18,9 @@ async function correctSingleBlock(
 
 	await onSend(
 		loadedEngine,
-		'Ce texte contient des fautes, corrige-les sans jamais changer les mots qu’il contient ni la ponctuation : ' +
+		"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais sans introduction, ni explication, ni contexte, il suffit d'écrire la correction." +
 			text,
+		'correction',
 		async (correctedText: string) => {
 			try {
 				const [sourceContent, correctedContent] = diffText(text, correctedText);

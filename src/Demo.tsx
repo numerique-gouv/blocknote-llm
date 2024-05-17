@@ -28,13 +28,14 @@ import {
 } from './utils/blockManipulation';
 import correctSingleBlock from './utils/correctSingleBlock';
 import diffText from './utils/diffText';
+import { systemPrompt } from './prompt';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
 	const [progress, setProgress] = useState('Not loaded');
 	const [test, setTest] = useState('');
 	const [selectedModel, setSelectedModel] = useState<string>(
-		Model.CROISSANT_LLM_CHAT_V0_1_Q4F16_1
+		Model.LLAMA_3_8B_INSTRUCT_Q4F16_1
 	);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [currentProccess, setCurrentProcess] = useState<
@@ -94,12 +95,18 @@ const Demo = () => {
 	const onSend = async (
 		loadedEngine: EngineInterface,
 		prompt: string,
+		task: 'translation' | 'correction' | 'resume',
 		updateEditor: updateEditor
 	) => {
 		if (prompt === '') {
 			return;
 		}
 		setIsGenerating(true);
+
+		const systemMessage: ChatCompletionMessageParam = {
+			role: 'system',
+			content: systemPrompt[task],
+		};
 
 		const userMessage: ChatCompletionMessageParam = {
 			role: 'user',
@@ -121,9 +128,10 @@ const Demo = () => {
 		// }
 
 		try {
+			console.log(systemMessage);
 			const completion = await loadedEngine.chat.completions.create({
 				stream: true,
-				messages: [userMessage],
+				messages: [systemMessage, userMessage],
 			});
 
 			let assistantMessage = '';
@@ -193,9 +201,14 @@ const Demo = () => {
 				setIsGenerating(true);
 				loadedEngine = await ensureEngineLoaded(loadedEngine);
 				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				await onSend(loadedEngine, prompt, (translatedText: string) => {
-					updateBlock(editorEnglish, id, translatedText, 'red');
-				});
+				await onSend(
+					loadedEngine,
+					prompt,
+					'translation',
+					(translatedText: string) => {
+						updateBlock(editorEnglish, id, translatedText, 'red');
+					}
+				);
 			}
 		}
 	};
@@ -224,6 +237,7 @@ const Demo = () => {
 			editorEnglish,
 			'Correction en cours…'
 		);
+
 		for (const id of idBlocks) {
 			const block = editorFrench.getBlock(id);
 			let text = '';
@@ -301,10 +315,14 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre3;
-							const res = await onSend(loadedEngine, prompt, (text: string) => {
-								console.log(text);
-							});
-
+							const res = await onSend(
+								loadedEngine,
+								prompt,
+								'resume',
+								(text: string) => {
+									console.log(text);
+								}
+							);
 							texte2 += res;
 						}
 					} else if (block.props.level === 2) {
@@ -316,9 +334,14 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre2;
-							const res = await onSend(loadedEngine, prompt, (text: string) => {
-								console.log(text);
-							});
+							const res = await onSend(
+								loadedEngine,
+								prompt,
+								'resume',
+								(text: string) => {
+									console.log(text);
+								}
+							);
 							texte1 += res;
 
 							texte2 = '';
@@ -334,9 +357,14 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre1;
-							const res = await onSend(loadedEngine, prompt, (text: string) => {
-								console.log(text);
-							});
+							const res = await onSend(
+								loadedEngine,
+								prompt,
+								'resume',
+								(text: string) => {
+									console.log(text);
+								}
+							);
 							text = res ?? '';
 
 							texte1 = '';
@@ -354,10 +382,15 @@ const Demo = () => {
 			loadedEngine = await ensureEngineLoaded(loadedEngine);
 			const prompt =
 				' Résume ce texte si besoin: ' + text + texte1 + texte2 + texte3;
-			const res = await onSend(loadedEngine, prompt, (text: string) => {
-				console.log(text);
-			});
-			console.log(res);
+			const res = await onSend(
+				loadedEngine,
+				prompt,
+				'resume',
+				(text: string) => {
+					console.log(text);
+				}
+			);
+
 			if (res) {
 				addBlock(
 					editorFrench,
@@ -384,7 +417,7 @@ const Demo = () => {
 					</div>
 				))}
 				</div>*/}
-			<div className='chatui-select-wrapper'>
+			{/* <div className='chatui-select-wrapper'>
 				<select
 					id='chatui-select'
 					value={selectedModel}
@@ -400,7 +433,7 @@ const Demo = () => {
 						</option>
 					))}
 				</select>
-			</div>
+			</div> */}
 			<div
 				style={{
 					display: 'flex',
