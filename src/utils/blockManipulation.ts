@@ -1,5 +1,18 @@
-import { BlockNoteEditor } from '@blocknote/core';
+import { BlockNoteEditor, StyleSchema, StyledText } from '@blocknote/core';
 import { transformateurJsonToString } from './ParserBlockToString';
+
+export const updateContentBlock = (
+	editor: BlockNoteEditor,
+	blockId: string,
+	content: StyledText<StyleSchema>[]
+) => {
+	const block = editor.getBlock(blockId);
+	if (block) {
+		editor.updateBlock(blockId, {
+			content: content,
+		});
+	}
+};
 
 export const updateBlock = (
 	editor: BlockNoteEditor,

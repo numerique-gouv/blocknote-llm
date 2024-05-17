@@ -3,17 +3,21 @@ import { Block } from '@blocknote/core';
 export const transformateurJsonToString = (block: Block) => {
 	let text = '';
 	if (block.type === 'table') {
-		for (let i = 0; i < block.content.rows.length; i++) {
-			for (let j = 0; j < block.content.rows[i].cells.length; j++) {
-				for (let k = 0; k < block.content.rows[i].cells[j].length; k++) {
+		for (const row of block.content.rows) {
+			for (const cell of row.cells) {
+				for (const item of cell) {
 					text += ' ';
-					text += block.content.rows[i].cells[j][k]?.text;
+					if ('text' in item) {
+						text += item.text;
+					}
 				}
 			}
 		}
 	} else if (block.content) {
-		for (let i = 0; i < block.content.length; i++) {
-			text += block.content[i]?.text;
+		for (const item of block.content) {
+			if ('text' in item) {
+				text += item.text;
+			}
 		}
 	}
 

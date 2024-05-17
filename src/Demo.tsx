@@ -3,17 +3,7 @@ import '@blocknote/core/fonts/inter.css';
 import {
 	BlockNoteView,
 	useCreateBlockNote,
-	FormattingToolbar,
 	FormattingToolbarController,
-	BlockTypeSelect,
-	ImageCaptionButton,
-	ReplaceImageButton,
-	BasicTextStyleButton,
-	TextAlignButton,
-	ColorStyleButton,
-	NestBlockButton,
-	UnnestBlockButton,
-	CreateLinkButton,
 } from '@blocknote/react';
 import '@blocknote/react/style.css';
 import './App.css';
@@ -25,7 +15,7 @@ import {
 	hasModelInCache,
 } from '@mlc-ai/web-llm';
 import { transformateurJsonToString } from './utils/ParserBlockToString';
-import { BlockNoteEditor } from '@blocknote/core';
+import { Block, BlockNoteEditor } from '@blocknote/core';
 import { CustomFormattingToolbar } from './components/CustomFormattingToolbar';
 import { appConfig } from './app-config';
 import { MODEL_DESCRIPTIONS, Model } from './models';
@@ -34,8 +24,10 @@ import {
 	duplicateEditor,
 	getEditorBlocks,
 	updateBlock,
+	updateContentBlock,
 } from './utils/blockManipulation';
 import correctSingleBlock from './utils/correctSingleBlock';
+import diffText from './utils/diffText';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -52,10 +44,6 @@ const Demo = () => {
 
 	const [runtimeStats, setRuntimeStats] = useState('');
 
-	const [modelsState, setModelsState] = useState<{ [key: string]: boolean }>(
-		{}
-	);
-
 	const IS_MODEL_STATUS_CHECK_ENABLED = false;
 
 	const updateModelStatus = async () => {
@@ -63,10 +51,6 @@ const Demo = () => {
 		Object.values(Model).forEach(async (model) => {
 			const isInCache = await hasModelInCache(model, appConfig);
 			console.log(`${model} in cache: ${isInCache}`);
-			setModelsState((prev) => ({
-				...prev,
-				[model]: isInCache,
-			}));
 		});
 	};
 
@@ -165,32 +149,32 @@ const Demo = () => {
 		}
 	};
 
-	const resetChat = async () => {
-		if (!engine) {
-			console.log('Engine not loaded');
-			return;
-		}
-		await engine.resetChat();
-		setTest('');
-	};
+	// const resetChat = async () => {
+	// 	if (!engine) {
+	// 		console.log('Engine not loaded');
+	// 		return;
+	// 	}
+	// 	await engine.resetChat();
+	// 	setTest('');
+	// };
 
-	const resetEngineAndChatHistory = async () => {
-		if (engine) {
-			await engine.unload();
-		}
-		setEngine(null);
-		setTest('');
-	};
+	// const resetEngineAndChatHistory = async () => {
+	// 	if (engine) {
+	// 		await engine.unload();
+	// 	}
+	// 	setEngine(null);
+	// 	setTest('');
+	// };
 
-	const onStop = () => {
-		if (!engine) {
-			console.log('Engine not loaded');
-			return;
-		}
+	// const onStop = () => {
+	// 	if (!engine) {
+	// 		console.log('Engine not loaded');
+	// 		return;
+	// 	}
 
-		setIsGenerating(false);
-		engine.interruptGenerate();
-	};
+	// 	setIsGenerating(false);
+	// 	engine.interruptGenerate();
+	// };
 
 	const translate = async () => {
 		let loadedEngine = engine;
@@ -207,27 +191,34 @@ const Demo = () => {
 			}
 			if (text !== '') {
 				setIsGenerating(true);
-				if (!loadedEngine) {
-					console.log('Engine not loaded');
-
-					try {
-						loadedEngine = await loadEngine();
-					} catch (error) {
-						setIsGenerating(false);
-						console.log(error);
-						setTest('Could not load the model because ' + error);
-						return;
-					}
-				}
+				loadedEngine = await ensureEngineLoaded(loadedEngine);
 				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				await onSend(loadedEngine, prompt, (text: string) => {
-					updateBlock(editorEnglish, id, text, 'red');
+				await onSend(loadedEngine, prompt, (translatedText: string) => {
+					updateBlock(editorEnglish, id, translatedText, 'red');
 				});
 			}
 		}
 	};
 
+	const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
+		if (currentEngine) {
+			return currentEngine;
+		}
+
+		console.log('Engine not loaded');
+		try {
+			const loadedEngine = await loadEngine();
+			return loadedEngine;
+		} catch (error) {
+			setIsGenerating(false);
+			console.log(error);
+			setTest('Could not load the model because ' + error);
+			throw new Error('Could not load the model because ' + error);
+		}
+	};
+
 	const Correction = async () => {
+		let loadedEngine = engine;
 		const idBlocks = await duplicateEditor(
 			editorFrench,
 			editorEnglish,
@@ -240,12 +231,15 @@ const Demo = () => {
 				text = transformateurJsonToString(block);
 			}
 			if (text !== '') {
+				setIsGenerating(true);
+				loadedEngine = await ensureEngineLoaded(loadedEngine);
 				await correctSingleBlock(
 					block,
 					editorEnglish.getBlock(id),
 					editorFrench,
 					editorEnglish,
-					onSend
+					onSend,
+					loadedEngine
 				);
 				// const prompt =
 				// 	"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
@@ -257,6 +251,30 @@ const Demo = () => {
 		}
 	};
 
+	// const correctSingleBlock = async (
+	// 	block: Block,
+	// 	id: string,
+	// 	loadedEngine: EngineInterface
+	// ) => {
+	// 	let text = '';
+
+	// 	if (Array.isArray(block.content)) {
+	// 		for (const sequence of block.content) {
+	// 			if ('text' in sequence) {
+	// 				text += sequence['text'];
+	// 			}
+	// 		}
+	// 	}
+	// 	const prompt =
+	// 		'Ce texte contient des fautes, corrige-les sans jamais changer les mots qu’il contient ni la ponctuation : ' +
+	// 		text;
+	// 	await onSend(loadedEngine, prompt, (correctedText: string) => {
+	// 		const [sourceContent, correctedContent] = diffText(text, correctedText);
+	// 		updateContentBlock(editorFrench, id, sourceContent);
+	// 		updateBlock(editorEnglish, id, correctedContent, 'red');
+	// 	});
+	// };
+
 	const Resume = async () => {
 		const idBlocks = getEditorBlocks(editorFrench).reverse();
 		console.log('test');
@@ -267,9 +285,12 @@ const Demo = () => {
 		let texte2 = '';
 		let texte1 = '';
 		let text = '';
+		let loadedEngine = engine;
 
 		for (const id of idBlocks) {
 			const block = editorFrench.getBlock(id);
+			setIsGenerating(true);
+			loadedEngine = await ensureEngineLoaded(loadedEngine);
 			if (block) {
 				if (block.type === 'heading') {
 					if (block.props.level === 3) {
@@ -280,7 +301,9 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre3;
-							const res = await onSend(prompt, (text: string) => {});
+							const res = await onSend(loadedEngine, prompt, (text: string) => {
+								console.log(text);
+							});
 
 							texte2 += res;
 						}
@@ -293,7 +316,9 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre2;
-							const res = await onSend(prompt, (text: string) => {});
+							const res = await onSend(loadedEngine, prompt, (text: string) => {
+								console.log(text);
+							});
 							texte1 += res;
 
 							texte2 = '';
@@ -309,8 +334,10 @@ const Demo = () => {
 								texte3 +
 								" sachant que c'est une sous-partie de :" +
 								titre1;
-							const res = await onSend(prompt, (text: string) => {});
-							text = res;
+							const res = await onSend(loadedEngine, prompt, (text: string) => {
+								console.log(text);
+							});
+							text = res ?? '';
 
 							texte1 = '';
 							texte2 = '';
@@ -323,9 +350,13 @@ const Demo = () => {
 			}
 		}
 		if (text + texte1 + texte2 + texte3 !== '') {
+			setIsGenerating(true);
+			loadedEngine = await ensureEngineLoaded(loadedEngine);
 			const prompt =
 				' Résume ce texte si besoin: ' + text + texte1 + texte2 + texte3;
-			const res = await onSend(prompt, (text: string) => {});
+			const res = await onSend(loadedEngine, prompt, (text: string) => {
+				console.log(text);
+			});
 			console.log(res);
 			if (res) {
 				addBlock(
@@ -392,7 +423,7 @@ const Demo = () => {
 				{runtimeStats && <p>Vitesse : {runtimeStats}</p>}
 				<div style={{ display: 'flex', gap: '20px' }}>
 					<button
-						disabled={currentProccess !== null}
+						disabled={currentProccess !== null || isGenerating}
 						onClick={() => {
 							setCurrentProcess('translation');
 							setTranslation(true);
