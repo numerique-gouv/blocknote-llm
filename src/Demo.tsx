@@ -21,6 +21,7 @@ import {
 	getEditorBlocks,
 	updateBlock,
 } from './utils/blockManipulation';
+import correctSingleBlock from './utils/correctSingleBlock';
 
 const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
@@ -180,7 +181,7 @@ const Demo = () => {
 		const idBlock = await duplicateEditor(
 			editorFrench,
 			editorEnglish,
-			'Traduction en cours...'
+			'Traduction en cours…'
 		);
 		for (const id of idBlock) {
 			const block = editorFrench.getBlock(id);
@@ -214,7 +215,7 @@ const Demo = () => {
 		const idBlocks = await duplicateEditor(
 			editorFrench,
 			editorEnglish,
-			'Correction en cours...'
+			'Correction en cours…'
 		);
 		for (const id of idBlocks) {
 			const block = editorFrench.getBlock(id);
@@ -223,12 +224,13 @@ const Demo = () => {
 				text = transformateurJsonToString(block);
 			}
 			if (text !== '') {
-				const prompt =
-					"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
-					text;
-				await onSend(prompt, (text: string) =>
-					updateBlock(editorEnglish, id, text, 'red')
-				);
+                await correctSingleBlock(block, editorEnglish.getBlock(id), editorFrench, editorEnglish, onSend)
+				// const prompt =
+				// 	"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
+				// 	text;
+				// await onSend(prompt, (text: string) =>
+				// 	updateBlock(editorEnglish, id, text, 'red')
+				// );
 			}
 		}
 	};
@@ -360,10 +362,10 @@ const Demo = () => {
 			</div>
 			<div className='translate-button'>
 				{currentProccess === 'translation' && (
-					<p>Document en cours de traduction ...</p>
+					<p>Document en cours de traduction…</p>
 				)}
 				{currentProccess === 'correction' && (
-					<p>Document en cours de corrrection ...</p>
+					<p>Document en cours de corrrection…</p>
 				)}
 				{runtimeStats && <p>Vitesse : {runtimeStats}</p>}
 				<div style={{ display: 'flex', gap: '20px' }}>
