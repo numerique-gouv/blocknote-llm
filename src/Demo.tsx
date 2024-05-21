@@ -91,7 +91,11 @@ const Demo = () => {
     textColor?: string
   ) => void;
 
-  const onSend = async (prompt: string, systemprompt : string, updateEditor: updateEditor) => {
+  const onSend = async (
+    prompt: string,
+    systemprompt: string,
+    updateEditor: updateEditor
+  ) => {
     if (prompt === "") {
       return;
     }
@@ -101,14 +105,12 @@ const Demo = () => {
 
     const systemMessage: ChatCompletionMessageParam = {
       role: "system",
-      content:
-        systemprompt,
-	};
-
+      content: systemprompt,
+    };
 
     const userMessage: ChatCompletionMessageParam = {
       role: "user",
-      content: prompt ,
+      content: prompt,
     };
 
     setTest("");
@@ -129,7 +131,7 @@ const Demo = () => {
     try {
       const completion = await loadedEngine.chat.completions.create({
         stream: true,
-        messages: [systemMessage, userMessage, ],
+        messages: [systemMessage, userMessage],
       });
 
       let assistantMessage = "";
@@ -189,8 +191,9 @@ const Demo = () => {
       editorEnglish,
       "Traduction en cours..."
     );
-	const systemprompt =   "You are a professional translator . Translate text from french to english without introduction, explanation or context, just write the traduction. Don't say \"here is the translation\" or \"the translation is\", just write the translation.";
-    
+    const systemprompt =
+      'You are a professional translator . Translate text from french to english without introduction, explanation or context, just write the traduction. Don\'t say "here is the translation" or "the translation is", just write the translation.';
+
     for (const id of idBlock) {
       const block = editorFrench.getBlock(id);
       let text = "";
@@ -225,7 +228,9 @@ const Demo = () => {
       editorEnglish,
       "Correction en cours..."
     );
-	const systemprompt = "Traduis ce texte mot pour mot en corrigeant les fautes d'orthographe en francais."
+    // const systemprompt = "Traduis ce texte mot pour mot en corrigeant les fautes d'orthographe en francais."
+    const systemprompt =
+      "Résume de manière succinte et efficace les textes suivants si besoin, ne mets pas une phrase pour dire que tu vas résumer:";
     for (const id of idBlocks) {
       const block = editorFrench.getBlock(id);
       let text = "";
@@ -234,7 +239,8 @@ const Demo = () => {
       }
       if (text !== "") {
         const prompt =
-          "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais sans introduction, ni explication, ni contexte, il suffit d'écrire la correction." +
+          // "Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes en francais sans introduction, ni explication, ni contexte, il suffit d'écrire la correction." +
+
           text;
         await onSend(prompt, systemprompt, (text: string) =>
           updateBlock(editorEnglish, id, text, "red")
