@@ -92,16 +92,18 @@ const Demo = () => {
     textColor?: string
   ) => void;
 
-  const onSend = async (
-    loadedEngine: EngineInterface,
-    prompt: string,
-    task: "translation" | "correction" | "resume" | "developpe",
-    updateEditor: updateEditor
-  ) => {
-    if (prompt === "") {
-      return;
-    }
-    setIsGenerating(true);
+	const onSend = async (
+		loadedEngine: EngineInterface,
+		prompt: string,
+		task: 'translation' | 'correction' | 'resume' | 'developpe',
+		updateEditor: updateEditor
+	) => {
+		if (prompt === '') {
+			return;
+		}
+		setIsGenerating(true);
+
+        loadedEngine = await ensureEngineLoaded(loadedEngine);
 
     const systemMessage: ChatCompletionMessageParam = {
       role: "system",
@@ -184,39 +186,32 @@ const Demo = () => {
   // 	engine.interruptGenerate();
   // };
 
-  const translate = async () => {
-    let loadedEngine = engine;
-    const markdown = await editorFrench.blocksToMarkdownLossy(
-      editorFrench.document
-    );
-    const neweditor = await editorFrench.tryParseMarkdownToBlocks(markdown);
-    editorFrench.replaceBlocks(editorFrench.document, neweditor);
-    const idBlock = await duplicateEditor(
-      editorFrench,
-      editorEnglish,
-      "Traduction en cours…"
-    );
-    for (const id of idBlock) {
-      const block = editorFrench.getBlock(id);
-      let text = "";
-      if (block) {
-        text = transformateurJsonToString(block);
-      }
-      if (text !== "") {
-        setIsGenerating(true);
-        loadedEngine = await ensureEngineLoaded(loadedEngine);
-        const prompt = "Tu peux me traduire ce texte en anglais : " + text;
-        await onSend(
-          loadedEngine,
-          prompt,
-          "translation",
-          (translatedText: string) => {
-            updateBlock(editorEnglish, id, translatedText, "red");
-          }
-        );
-      }
-    }
-  };
+	const translate = async () => {
+		let loadedEngine = engine;
+		const idBlock = await duplicateEditor(
+			editorFrench,
+			editorEnglish,
+			'Traduction en cours…'
+		);
+		for (const id of idBlock) {
+			const block = editorFrench.getBlock(id);
+			let text = '';
+			if (block) {
+				text = transformateurJsonToString(block);
+			}
+			if (text !== '') {
+				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
+				await onSend(
+					loadedEngine,
+					prompt,
+					'translation',
+					(translatedText: string) => {
+						updateBlock(editorEnglish, id, translatedText, 'red');
+					}
+				);
+			}
+		}
+	};
 
   const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
     if (currentEngine) {
@@ -248,32 +243,32 @@ const Demo = () => {
       "Correction en cours…"
     );
 
-    for (const id of idBlocks) {
-      const block = editorFrench.getBlock(id);
-      let text = "";
-      if (block) {
-        text = transformateurJsonToString(block);
-      }
-      if (text !== "") {
-        setIsGenerating(true);
-        loadedEngine = await ensureEngineLoaded(loadedEngine);
-        await correctSingleBlock(
-          block,
-          editorEnglish.getBlock(id),
-          editorFrench,
-          editorEnglish,
-          onSend,
-          loadedEngine
-        );
-        // const prompt =
-        // 	"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
-        // 	text;
-        // await onSend(prompt, (text: string) =>
-        // 	updateBlock(editorEnglish, id, text, 'red')
-        // );
-      }
-    }
-  };
+		for (const id of idBlocks) {
+			const block = editorFrench.getBlock(id);
+			let text = '';
+			if (block) {
+				text = transformateurJsonToString(block);
+			}
+			if (text !== '') {
+				// setIsGenerating(true);
+				// loadedEngine = await ensureEngineLoaded(loadedEngine);
+				await correctSingleBlock(
+					block,
+					editorEnglish.getBlock(id),
+					editorFrench,
+					editorEnglish,
+					onSend,
+					loadedEngine
+				);
+				// const prompt =
+				// 	"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographes : " +
+				// 	text;
+				// await onSend(prompt, (text: string) =>
+				// 	updateBlock(editorEnglish, id, text, 'red')
+				// );
+			}
+		}
+	};
 
   // const correctSingleBlock = async (
   // 	block: Block,
@@ -486,59 +481,58 @@ const Demo = () => {
 					))}
 				</select>
 			</div> */}
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <button onClick={loadEngine}>Load</button>
-        <div>{progress}</div>
-      </div>
-      <div className="translate-button">
-        {currentProccess === "translation" && (
-          <p>Document en cours de traduction…</p>
-        )}
-        {currentProccess === "correction" && (
-          <p>Document en cours de corrrection…</p>
-        )}
-        {runtimeStats && <p>Vitesse : {runtimeStats}</p>}
-        <div style={{ display: "flex", gap: "20px" }}>
-          <button
-            disabled={currentProccess !== null || isGenerating}
-            onClick={() => {
-              setCurrentProcess("translation");
-              setTranslation(true);
-              translate();
-            }}
-          >
-            Traduire le document
-          </button>
-          <button
-            disabled={currentProccess !== null}
-            onClick={() => {
-              setCurrentProcess("correction");
-              setTranslation(true);
-              // setTranslation(true);
-              Correction();
-            }}
-          >
-            Corriger le document
-          </button>
-          <button
-            disabled={currentProccess !== null}
-            onClick={() => {
-              setCurrentProcess("resume");
-              Resume();
-            }}
-          >
-            Resumer le document
-          </button>
-          <button
+			<div
+				style={{
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					gap: '20px',
+					marginBottom: '20px',
+				}}
+			>
+				<button onClick={loadEngine}>Load</button>
+				<div>{progress}</div>
+			</div>
+			<div className='translate-button'>
+				{currentProccess === 'translation' && (
+					<p>Document en cours de traduction…</p>
+				)}
+				{currentProccess === 'correction' && (
+					<p>Document en cours de corrrection…</p>
+				)}
+				{runtimeStats && <p>Vitesse : {runtimeStats}</p>}
+				<div style={{ display: 'flex', gap: '20px' }}>
+					<button
+						disabled={currentProccess !== null || isGenerating}
+						onClick={() => {
+							setCurrentProcess('translation');
+							setTranslation(true);
+							translate();
+						}}
+					>
+						Traduire le document
+					</button>
+					<button
+						disabled={currentProccess !== null}
+						onClick={() => {
+							setCurrentProcess('correction');
+							setTranslation(true);
+							// setTranslation(true);
+							Correction();
+						}}
+					>
+						Corriger le document
+					</button>
+					<button
+						disabled={currentProccess !== null}
+						onClick={() => {
+							setCurrentProcess('resume');
+							Resume();
+						}}
+					>
+						Resumer le document
+					</button>
+                    <button
             disabled={currentProccess !== null}
             onClick={() => {
               setCurrentProcess("developpe");
@@ -560,25 +554,25 @@ const Demo = () => {
       >
         {isGenerating && <div>Chargement de la réponse...</div>}
       </div>
-      <div className="blocknote-container">
-        <BlockNoteView
-          editor={editorFrench}
-          className={
-            translation ? "blocknote-french" : "blocknote-french full-width"
-          }
-          formattingToolbar={false}
-        >
-          <FormattingToolbarController
-            formattingToolbar={() => (
-              <CustomFormattingToolbar onSend={onSend} />
-            )}
-          />
-        </BlockNoteView>
-        {translation && (
-          <BlockNoteView editor={editorEnglish} className="blocknote-english" />
-        )}
-      </div>
-    </>
-  );
+			<div className='blocknote-container'>
+				<BlockNoteView
+					editor={editorFrench}
+					className={
+						translation ? 'blocknote-french' : 'blocknote-french full-width'
+					}
+					formattingToolbar={false}
+				>
+					<FormattingToolbarController
+						formattingToolbar={() => (
+							<CustomFormattingToolbar onSend={onSend} />
+						)}
+					/>
+				</BlockNoteView>
+				{translation && (
+					<BlockNoteView editor={editorEnglish} className='blocknote-english' />
+				)}
+			</div>
+		</>
+	);
 };
 export default Demo;

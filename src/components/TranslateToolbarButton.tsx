@@ -14,7 +14,7 @@ function translateString(text: string) {
 
 
 // Custom Formatting Toolbar Button to translate text to English
-export function TranslateToolbarButton({ onSend }) {
+export function TranslateToolbarButton({ onSend, engine }) {
     const editor = useBlockNoteEditor();
 
     async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
@@ -22,7 +22,7 @@ export function TranslateToolbarButton({ onSend }) {
         const translatedMarkdownBlockPromise = translateString(markdownBlock)
 
         const translateProps = block.props
-        translateProps["textColor"] = "red"
+        translateProps["textColor"] = "blue"
         
         const newBlocks = editor.insertBlocks(
             [{
@@ -33,7 +33,9 @@ export function TranslateToolbarButton({ onSend }) {
             "after"
         )
         await onSend(
-            "Traduis ce texte en anglais, en conservant le formatage en markdown : " + markdownBlock,
+            engine,
+            "Translate this text to English, preserving the markdown style : " + markdownBlock,
+            'translation',
             async (markdownText: string) => {
                 try {
                     const convertedBlocks =  await editor.tryParseMarkdownToBlocks(markdownText)
@@ -49,8 +51,31 @@ export function TranslateToolbarButton({ onSend }) {
     }
 
     async function translateBlocks(blocks: Block[], editor: BlockNoteEditor) {
-        for (const block of blocks) {
-            await translateSingleBlock(block, editor)
+        if (blocks.length == 1) {
+            const block = blocks[0]
+            const text = editor.getSelectedText()
+            const translateProps = block.props
+            translateProps["textColor"] = "blue"
+            const newBlock = editor.insertBlocks(
+                [{
+                    "props": translateProps,
+                    "type": block.type
+                }],
+                block.id,
+                'after'
+            )[0]
+            onSend(
+                engine,
+                "Translate this text to English : " + text,
+                'translation',
+                async (translatedText: string) => {
+                    editor.updateBlock(newBlock.id, {"content": translatedText})
+                }
+            )
+        } else {
+            for (const block of blocks) {
+                await translateSingleBlock(block, editor)
+            }
         }
     }
 
