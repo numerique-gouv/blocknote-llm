@@ -13,11 +13,13 @@
 		"@blocknote/core": "^0.12.4",
 		"@blocknote/react": "^0.12.4",
 		"@mlc-ai/web-llm": "^0.2.35",
+    "diff": "^5.2.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"zustand": "^4.5.2"
 	},
 	"devDependencies": {
+    "@types/diff": "^5.2.1",
 		"@types/react": "^18.2.66",
 		"@types/react-dom": "^18.2.22",
 		"@typescript-eslint/eslint-plugin": "^7.2.0",
