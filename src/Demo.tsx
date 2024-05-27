@@ -409,8 +409,8 @@ const Demo = () => {
         addBlock(
           editorFrench,
           idBlocks[idBlocks.length - 1],
-          "Voici le résumé du document : " + res,
-          "red",
+          "Voici le résumé du document : \n " + res,
+          "blue",
           "before"
         );
       }
