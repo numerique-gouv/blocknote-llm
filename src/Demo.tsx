@@ -466,6 +466,7 @@ const Demo = () => {
 					))}
 				</select>
 			</div> */}
+      
       <div
         style={{
           display: "flex",
@@ -527,6 +528,17 @@ const Demo = () => {
             Développer le document
           </button>
         </div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "20px",
+          marginBottom: "20px",
+        }}
+      >
+      {isGenerating  && (<div>Chargement de la réponse...</div>) }
       </div>
       <div className="blocknote-container">
         <BlockNoteView
