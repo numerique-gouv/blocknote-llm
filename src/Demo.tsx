@@ -186,6 +186,11 @@ const Demo = () => {
 
   const translate = async () => {
     let loadedEngine = engine;
+    const markdown = await editorFrench.blocksToMarkdownLossy(
+      editorFrench.document
+    );
+    const neweditor = await editorFrench.tryParseMarkdownToBlocks(markdown);
+    editorFrench.replaceBlocks(editorFrench.document, neweditor);
     const idBlock = await duplicateEditor(
       editorFrench,
       editorEnglish,
@@ -232,6 +237,11 @@ const Demo = () => {
 
   const Correction = async () => {
     let loadedEngine = engine;
+    const markdown = await editorFrench.blocksToMarkdownLossy(
+      editorFrench.document
+    );
+    const neweditor = await editorFrench.tryParseMarkdownToBlocks(markdown);
+    editorFrench.replaceBlocks(editorFrench.document, neweditor);
     const idBlocks = await duplicateEditor(
       editorFrench,
       editorEnglish,
@@ -290,6 +300,11 @@ const Demo = () => {
   // };
 
   const Resume = async () => {
+    const markdown = await editorFrench.blocksToMarkdownLossy(
+      editorFrench.document
+    );
+    const neweditor = await editorFrench.tryParseMarkdownToBlocks(markdown);
+    editorFrench.replaceBlocks(editorFrench.document, neweditor);
     const idBlocks = getEditorBlocks(editorFrench).reverse();
     let texte3 = "";
     let titre1 = "";
@@ -403,6 +418,11 @@ const Demo = () => {
   };
 
   const Developpe = async () => {
+    const markdown = await editorFrench.blocksToMarkdownLossy(
+      editorFrench.document
+    );
+    const neweditor = await editorFrench.tryParseMarkdownToBlocks(markdown);
+    editorFrench.replaceBlocks(editorFrench.document, neweditor);
     const idBlocks = getEditorBlocks(editorFrench);
     let text = "";
     let loadedEngine = engine;
@@ -466,7 +486,7 @@ const Demo = () => {
 					))}
 				</select>
 			</div> */}
-      
+
       <div
         style={{
           display: "flex",
@@ -538,7 +558,7 @@ const Demo = () => {
           marginBottom: "20px",
         }}
       >
-      {isGenerating  && (<div>Chargement de la réponse...</div>) }
+        {isGenerating && <div>Chargement de la réponse...</div>}
       </div>
       <div className="blocknote-container">
         <BlockNoteView
