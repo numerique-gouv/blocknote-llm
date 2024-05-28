@@ -79,7 +79,7 @@ const Demo = () => {
         type: "module",
       }),
       selectedModel,
-      { initProgressCallback: initProgressCallback, appConfig: appConfig }
+      { initProgressCallback: initProgressCallback, appConfig: appConfig, chatOpts: {max_gen_len: 4096} }
     );
     setEngine(engine);
     return engine;
