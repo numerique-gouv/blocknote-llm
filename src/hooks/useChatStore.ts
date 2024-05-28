@@ -1,44 +1,58 @@
 import * as webllm from '@mlc-ai/web-llm';
 import { create } from 'zustand';
-import { Model } from '../models';
 
 interface State {
-	// Model
-	selectedModel: Model;
-	setSelectedModel: (model: Model) => void;
+	// Engine
+	engine: webllm.EngineInterface | null;
+	setEngine: (engine: webllm.EngineInterface) => void;
+
+	// Progress
+	progress: string;
+	setProgress: (progress: string) => void;
+
+	// Progress percentage
+	progressPercentage: number;
+	setProgressPercentage: (progressPercentage: number) => void;
 
 	// User input
 	userInput: string;
 	setUserInput: (input: string) => void;
 
+	// Loading state
+	isFetching: boolean;
+	setIsFetching: (isFetching: boolean) => void;
+
 	// Inference state
 	isGenerating: boolean;
 	setIsGenerating: (isGenerating: boolean) => void;
 
-	// Chat history
-	chatHistory: webllm.ChatCompletionMessageParam[];
-	setChatHistory: (
-		fn: (
-			chatHistory: webllm.ChatCompletionMessageParam[]
-		) => webllm.ChatCompletionMessageParam[]
-	) => void;
+	// Output
+	output: string;
+	setOutput: (input: string) => void;
 }
 
 const useChatStore = create<State>((set) => ({
-	selectedModel: Model.LLAMA_3_8B_INSTRUCT_Q4F16_1,
-	setSelectedModel: (model: Model) => set({ selectedModel: model }),
+	engine: null,
+	setEngine: (engine: webllm.EngineInterface) => set({ engine }),
+
+	progress: 'Not loadeed',
+	setProgress: (progress: string) => set({ progress }),
+
+	progressPercentage: 0,
+	setProgressPercentage: (progressPercentage: number) =>
+		set({ progressPercentage }),
 
 	userInput: '',
 	setUserInput: (input: string) => set({ userInput: input }),
 
+	isFetching: false,
+	setIsFetching: (isFetching: boolean) => set({ isFetching }),
+
 	isGenerating: false,
 	setIsGenerating: (isGenerating: boolean) => set({ isGenerating }),
 
-	chatHistory: [],
-	setChatHistory: (fn) =>
-		set((state) => ({
-			chatHistory: fn(state.chatHistory),
-		})),
+	output: '',
+	setOutput: (output: string) => set({ output }),
 }));
 
 export default useChatStore;

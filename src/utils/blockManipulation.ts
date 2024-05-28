@@ -39,13 +39,15 @@ export const addBlock = (
 	blockId: string,
 	text: string,
 	textColor: string = 'black',
-	textPosition: 'before' | 'after' | 'nested' = 'after'
+	textPosition: 'before' | 'after' | 'nested' = 'after',
+	idBlockToInsert?: string
 ) => {
 	const block = editor.getBlock(blockId);
 	if (block) {
 		editor.insertBlocks(
 			[
 				{
+					id: idBlockToInsert,
 					content: [
 						{
 							type: 'text',
@@ -76,9 +78,12 @@ export const getEditorBlocks = (editor: BlockNoteEditor) => {
 export const duplicateEditor = async (
 	initialEditor: BlockNoteEditor,
 	duplicateEditor: BlockNoteEditor,
-	placeholder: string
+	placeholder: string,
+	textColor: string = 'black'
 ) => {
 	const idBlocks: string[] = [];
+	let isFirstBlock = true;
+
 	await initialEditor.tryParseMarkdownToBlocks(''); //Fix bug
 	duplicateEditor.replaceBlocks(
 		duplicateEditor.document,
@@ -92,11 +97,12 @@ export const duplicateEditor = async (
 				content: [
 					{
 						type: 'text',
-						text: placeholder,
-						styles: { textColor: 'red' },
+						text: isFirstBlock ? placeholder : '',
+						styles: { textColor: textColor },
 					},
 				],
 			});
+			isFirstBlock = false;
 		}
 		return true;
 	});

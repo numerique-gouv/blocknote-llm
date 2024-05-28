@@ -12,6 +12,12 @@
 	-webkit-text-size-adjust: 100%;
 }
 
+body {
+	margin: 0;
+	place-items: center;
+	min-height: 100vh;
+}
+
 h1 {
 	font-size: 3.2em;
 	line-height: 1;
@@ -22,9 +28,13 @@ h2 {
 	margin: 8px;
 }
 
-select {
-	padding: 0.3em;
-	cursor: pointer;
+p {
+	padding: 0 1rem;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
 }
 
 textarea {
@@ -41,28 +51,18 @@ button[disabled] {
 	cursor: not-allowed;
 }
 
-select,
-textarea,
-button {
-	border-radius: 8px;
-	border: 1px solid transparent;
-	font-size: 1em;
-	font-family: inherit;
-	background-color: #f9f9f9;
-	transition: border-color 0.25s;
-}
-
-select:hover,
 textarea:hover,
 button:not([disabled]):hover {
-	border-color: #646cff;
+	border-color: black;
 }
 
-select:focus,
-select:focus-visible,
 textarea:focus,
-textarea:focus-visible,
-button:focus,
-button:focus-visible {
-	outline: 4px auto -webkit-focus-ring-color;
+textarea:focus-visible {
+	outline: 4px auto black;
+}
+
+@media (max-width: 768px) {
+	h1 {
+		font-size: 2.4em;
+	}
 }
