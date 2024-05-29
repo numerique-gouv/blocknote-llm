@@ -6,12 +6,6 @@ import {
 } from "@blocknote/react";
 import { useState } from "react";
 
-function translateString(text: string) {
-
-}
-
-
-
 
 // Custom Formatting Toolbar Button to translate text to English
 export function TranslateToolbarButton({ onSend, engine }) {
@@ -19,7 +13,6 @@ export function TranslateToolbarButton({ onSend, engine }) {
 
     async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
         const markdownBlock = await editor.blocksToMarkdownLossy([block])
-        const translatedMarkdownBlockPromise = translateString(markdownBlock)
 
         const translateProps = block.props
         translateProps["textColor"] = "blue"
@@ -33,13 +26,12 @@ export function TranslateToolbarButton({ onSend, engine }) {
             "after"
         )
         await onSend(
-            engine,
             "Translate this text to English, preserving the markdown style : " + markdownBlock,
             'translation',
             async (markdownText: string) => {
                 try {
                     const convertedBlocks =  await editor.tryParseMarkdownToBlocks(markdownText)
-                    editor.updateBlock(newBlocks[0].id, {"content": convertedBlocks[0].content})
+                    editor.updateBlock(newBlocks[0].id, {content: convertedBlocks[0].content, props: ""})
                 } catch (error) {
                     console.log(error)
                 }
@@ -65,7 +57,6 @@ export function TranslateToolbarButton({ onSend, engine }) {
                 'after'
             )[0]
             onSend(
-                engine,
                 "Translate this text to English : " + text,
                 'translation',
                 async (translatedText: string) => {

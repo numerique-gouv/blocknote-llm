@@ -35,22 +35,23 @@ export function CorrectToolbarButton({ onSend, engine }: { onSend: () => void, e
                 editor,
                 editor,
                 onSend,
-                engine
                 )
         } else {
             for (const block of blocks) {
                 const correctProps = block.props
                 correctProps['textColor'] = correctedTextColor
-                const newBlocks = editor.insertBlocks(
-                    [{
-                        props: correctProps,
-                        type: block.type
-                    }], 
-                    block.id, 
-                    'after'
-                )
-                const newBlock = newBlocks[0]
-                await correctSingleBlock(block, newBlock, editor, editor, onSend, engine)
+                if (block.content !== []) {
+                    const newBlocks = editor.insertBlocks(
+                        [{
+                            props: correctProps,
+                            type: block.type
+                        }], 
+                        block.id, 
+                        'after'
+                    )
+                    const newBlock = newBlocks[0]
+                    await correctSingleBlock(block, newBlock, editor, editor, onSend, engine)
+                }
             }
         }
     }

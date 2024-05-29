@@ -135,6 +135,8 @@ const Demo = () => {
 			content: systemPrompt[task],
 		};
 
+        console.log("prompt: " + prompt)
+
 		const userMessage: ChatCompletionMessageParam = {
 			role: 'user',
 			content: prompt,
@@ -199,23 +201,6 @@ const Demo = () => {
 		console.log(`${selectedModel} in cache: ${isInCache}`);
 	};
 
-	const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
-		if (currentEngine) {
-			return currentEngine;
-		}
-
-		console.log('Engine not loaded');
-		try {
-			const loadedEngine = await loadEngine();
-			return loadedEngine;
-		} catch (error) {
-			setIsGenerating(false);
-			console.log(error);
-			setOutput('Could not load the model because ' + error);
-			throw new Error('Could not load the model because ' + error);
-		}
-	};
-
 	const removeNestedBlocks = async () => {
 		const markdownContent = await mainEditor.blocksToMarkdownLossy(
 			mainEditor.document
@@ -239,21 +224,47 @@ const Demo = () => {
 		);
 
 		for (const id of idBlock) {
-			const block = mainEditor.getBlock(id);
+			const mainBlock = mainEditor.getBlock(id);
+            const secondBlock = secondEditor.getBlock(id)
 			let text = '';
-			if (block) {
-				text = transformateurJsonToString(block);
+			if (mainBlock) {
+				text = transformateurJsonToString(mainBlock);
 			}
+            const markdownText = await mainEditor.blocksToMarkdownLossy([mainBlock])
 			if (text !== '') {
-				const prompt = 'Tu peux me traduire ce texte en anglais : ' + text;
-				await onSend(prompt, 'translation', (translatedText: string) => {
-					updateBlock(secondEditor, id, translatedText, 'red');
-				});
+				const prompt = 'Translate this text to English and keep the markdown formatting : ' + markdownText;
+				await onSend(
+					prompt,
+					'translation',
+					async (translatedText: string) => {
+                        const translatedBlocks = await secondEditor.tryParseMarkdownToBlocks(translatedText)
+                        const translatedContent = translatedBlocks[0].content
+                        secondEditor.updateBlock(secondBlock, { content: translatedContent})
+						// updateBlock(editorEnglish, id, translatedText, 'red');
+					}
+				);
 			}
 		}
-		setIsGenerating(false);
-		setCurrentProcess(null);
+        setCurrentProcess(null);
+        setIsGenerating(false)
 	};
+
+  const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
+    if (currentEngine) {
+      console.log("Engine loaded")
+      return currentEngine;
+    }
+
+    console.log("Engine not loaded");
+    try {
+      const loadedEngine = await loadEngine();
+      return loadedEngine;
+    } catch (error) {
+      setIsGenerating(false);
+      console.log(error);
+      throw new Error("Could not load the model because " + error);
+    }
+  };
 
 	const correction = async () => {
 		setCurrentProcess('correction');
@@ -283,6 +294,7 @@ const Demo = () => {
 				);
 			}
 		}
+        console.log("Correction ended")
 		setIsGenerating(false);
 		setCurrentProcess(null);
 	};
