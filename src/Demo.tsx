@@ -124,7 +124,7 @@ const Demo = () => {
 		if (prompt === '') {
 			return;
 		}
-		setOutput('');
+		setOutput('Document en cours de traduction');
 
 		let loadedEngine = engine;
 
@@ -440,7 +440,7 @@ const Demo = () => {
 				</Tooltip>
 			</div>
 			<div className='header-container'>
-				<h1>Impress</h1>
+				<h1>BlockNoteLLM</h1>
 
 				<div className='button-container'>
 					<Button
@@ -481,6 +481,16 @@ const Demo = () => {
 					</Button>
 				</div>
 
+				<p className='text-error'>
+					{errorBrowserMessage} Veuillez consulter{' '}
+					<a href='https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility'>
+						<span className='underline'>cette page</span>
+					</a>{' '}
+					pour voir la compatibilité avec les navigateurs.
+				</p>
+
+				{output && <p className='text-info'>{output}</p>}
+
 				{progressPercentage !== 0 && (
 					<div className='progress-bars-container'>
 						<Progress percentage={progressPercentage} />
@@ -488,7 +498,9 @@ const Demo = () => {
 				)}
 
 				<div className='progress-text'>{progress}</div>
-				{runtimeStats && <p>Performances : {runtimeStats}</p>}
+				{runtimeStats && (
+					<p className='performances-text'>Performances : {runtimeStats}</p>
+				)}
 
 				{/* {isGenerating && <div>Chargement de la réponse...</div>}
 				{currentProccess === 'translation' && (
