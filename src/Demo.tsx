@@ -135,8 +135,6 @@ const Demo = () => {
 			content: systemPrompt[task],
 		};
 
-        console.log("prompt: " + prompt)
-
 		const userMessage: ChatCompletionMessageParam = {
 			role: 'user',
 			content: prompt,
@@ -211,6 +209,24 @@ const Demo = () => {
 		mainEditor.replaceBlocks(mainEditor.document, editorWithoutNestedBlocks);
 	};
 
+	const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
+		if (currentEngine) {
+			console.log('Engine loaded');
+			return currentEngine;
+		}
+
+		console.log('Engine not loaded');
+		try {
+			const loadedEngine = await loadEngine();
+			return loadedEngine;
+		} catch (error) {
+			setIsGenerating(false);
+			console.log(error);
+			setOutput('Could not load the model because ' + error);
+			throw new Error('Could not load the model because ' + error);
+		}
+	};
+
 	const translate = async () => {
 		setCurrentProcess('translation');
 		setShowSecondEditor(true);
@@ -225,46 +241,29 @@ const Demo = () => {
 
 		for (const id of idBlock) {
 			const mainBlock = mainEditor.getBlock(id);
-            const secondBlock = secondEditor.getBlock(id)
+			const secondBlock = secondEditor.getBlock(id);
 			let text = '';
 			if (mainBlock) {
 				text = transformateurJsonToString(mainBlock);
 			}
-            const markdownText = await mainEditor.blocksToMarkdownLossy([mainBlock])
+			const markdownText = await mainEditor.blocksToMarkdownLossy([mainBlock]);
 			if (text !== '') {
-				const prompt = 'Translate this text to English and keep the markdown formatting : ' + markdownText;
-				await onSend(
-					prompt,
-					'translation',
-					async (translatedText: string) => {
-                        const translatedBlocks = await secondEditor.tryParseMarkdownToBlocks(translatedText)
-                        const translatedContent = translatedBlocks[0].content
-                        secondEditor.updateBlock(secondBlock, { content: translatedContent})
-						// updateBlock(editorEnglish, id, translatedText, 'red');
-					}
-				);
+				const prompt =
+					'Translate this text to English and keep the markdown formatting : ' +
+					markdownText;
+				await onSend(prompt, 'translation', async (translatedText: string) => {
+					const translatedBlocks = await secondEditor.tryParseMarkdownToBlocks(
+						translatedText
+					);
+					const translatedContent = translatedBlocks[0].content;
+					secondEditor.updateBlock(secondBlock, { content: translatedContent });
+					// updateBlock(editorEnglish, id, translatedText, 'red');
+				});
 			}
 		}
-        setCurrentProcess(null);
-        setIsGenerating(false)
+		setCurrentProcess(null);
+		setIsGenerating(false);
 	};
-
-  const ensureEngineLoaded = async (currentEngine: EngineInterface | null) => {
-    if (currentEngine) {
-      console.log("Engine loaded")
-      return currentEngine;
-    }
-
-    console.log("Engine not loaded");
-    try {
-      const loadedEngine = await loadEngine();
-      return loadedEngine;
-    } catch (error) {
-      setIsGenerating(false);
-      console.log(error);
-      throw new Error("Could not load the model because " + error);
-    }
-  };
 
 	const correction = async () => {
 		setCurrentProcess('correction');
@@ -294,7 +293,6 @@ const Demo = () => {
 				);
 			}
 		}
-        console.log("Correction ended")
 		setIsGenerating(false);
 		setCurrentProcess(null);
 	};
@@ -452,7 +450,7 @@ const Demo = () => {
 				</Tooltip>
 			</div>
 			<div className='header-container'>
-				<h1>Impress</h1>
+				<h1>BlockNoteLLM</h1>
 
 				<div className='button-container'>
 					<Button
