@@ -32,7 +32,8 @@ import { systemPrompt } from './prompt';
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
 import Progress from './components/Progress';
 import { IconPlayerStop, IconTrash } from '@tabler/icons-react';
-import { AutoTokenizer, env } from '@xenova/transformers';
+import { AutoTokenizer, PreTrainedTokenizer, env } from '@xenova/transformers';
+import { checkInputLength } from './tokenizer';
 
 declare global {
 	interface Window {
@@ -40,7 +41,6 @@ declare global {
 	}
 }
 env.localModelPath = '/blocknote-llm/';
-const tokenizer = await AutoTokenizer.from_pretrained('/models');
 
 const Demo = () => {
 	const selectedModel = 'Llama-3-8B-Instruct-q4f16_1';
@@ -136,6 +136,11 @@ const Demo = () => {
 		setProgress(report.text);
 	};
 
+	//const loadTokenizer = async () => {
+	// 	const tokenizer = await AutoTokenizer.from_pretrained('/models');
+	// 	setTokenizer(tokenizer);
+	// };
+
 	const loadEngine = async () => {
 		console.log('Loading engine');
 		setIsFetching(true);
@@ -194,12 +199,7 @@ const Demo = () => {
 
 		const chat = [systemMessage, userMessage];
 
-		const input_ids = tokenizer.apply_chat_template(chat, {
-			tokenize: true,
-			return_tensor: false,
-		});
-
-		if (input_ids.length > 7000) {
+		if (await checkInputLength(chat)) {
 			setError(
 				'Le texte de ce bloc est trop long. Veuillez raccourcir le texte ou le séparer en plusieurs blocs.'
 			);
