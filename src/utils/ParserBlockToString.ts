@@ -15,9 +15,12 @@ export const transformateurJsonToString = (block: Block) => {
 		}
 	} else if (block.content) {
 		for (const item of block.content) {
-			if ('text' in item) {
-				text += item.text;
-			}
+			if (item.type === 'link') {
+                text += transformateurJsonToString({ type: 'paragraph', content: item.content })
+            } else {
+                text += item.text
+            }
+            text += '\n'
 		}
 	}
 

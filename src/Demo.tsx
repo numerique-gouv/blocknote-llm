@@ -655,7 +655,7 @@ const Demo = () => {
 				>
 					<FormattingToolbarController
 						formattingToolbar={() => (
-							<CustomFormattingToolbar onSend={onSend} />
+							<CustomFormattingToolbar onSend={onSend}/>
 						)}
 					/>
 				</BlockNoteView>

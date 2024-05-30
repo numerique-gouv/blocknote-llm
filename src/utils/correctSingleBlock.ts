@@ -2,6 +2,7 @@ import { Block, BlockNoteEditor } from '@blocknote/core';
 import diffText from './diffText';
 import { diffWords, diffChars } from 'diff';
 import { EngineInterface } from '@mlc-ai/web-llm';
+import { transformateurJsonToString } from './ParserBlockToString';
 
 async function correctSingleBlock(
 	sourceBlock: Block | undefined,
@@ -11,11 +12,12 @@ async function correctSingleBlock(
 	onSend: Function,
 	design: number = 1
 ) {
-	let text = '';
+	const text = transformateurJsonToString(sourceBlock);
 	// get plain text of sourceBlock
-	for (const sequence of sourceBlock.content) {
-		text += sequence['text'];
-	}
+
+    if (text === '') { return }
+	
+
 
 	await onSend(
 		"Je veux que tu recopies mot pour mot ce texte en corrigeant les fautes d'orthographe en francais sans introduction, ni explication, ni contexte, il suffit d'écrire la correction : " +
