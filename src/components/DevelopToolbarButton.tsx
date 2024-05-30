@@ -50,7 +50,7 @@ export function DevelopToolbarButton({ onSend }) {
 
 	return (
 		<ToolbarButton
-			mainTooltip={'Corriger'}
+			mainTooltip={'Développer'}
 			onClick={() => {
 				developBlocks(editor.getSelection()?.blocks, editor);
 			}}
