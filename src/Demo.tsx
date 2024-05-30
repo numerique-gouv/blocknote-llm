@@ -245,6 +245,7 @@ const Demo = () => {
 		secondEditor.removeBlocks(secondEditor.document);
 		setShowSecondEditor(false);
 		setOutput('');
+		setError(null);
 	};
 
 	const onStop = () => {
