@@ -123,7 +123,7 @@ const Demo = () => {
 			setOutput('Chargement du modèle dans la RAM...');
 		} else {
 			setOutput(
-				'Téléchargement des points du modèle dans la cachade de votre navigateur, cela peut prendre quelques minutes.'
+				'Téléchargement des points du modèle dans le cache de votre navigateur, cela peut prendre quelques minutes.'
 			);
 		}
 		if (report.progress !== 0) {
@@ -655,7 +655,7 @@ const Demo = () => {
 				>
 					<FormattingToolbarController
 						formattingToolbar={() => (
-							<CustomFormattingToolbar onSend={onSend}/>
+							<CustomFormattingToolbar onSend={onSend} />
 						)}
 					/>
 				</BlockNoteView>

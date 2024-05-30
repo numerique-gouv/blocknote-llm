@@ -14,5 +14,5 @@ export const checkInputLength = async (
 		return_tensor: false,
 	});
 
-	return input_ids.length > 7000;
+	return input_ids.length > 3500;
 };
