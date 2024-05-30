@@ -32,6 +32,15 @@ import { systemPrompt } from './prompt';
 import { ActionIcon, Button, Tooltip } from '@mantine/core';
 import Progress from './components/Progress';
 import { IconPlayerStop, IconTrash } from '@tabler/icons-react';
+import { AutoTokenizer, env } from '@xenova/transformers';
+
+declare global {
+	interface Window {
+		chrome?: any;
+	}
+}
+env.localModelPath = '/blocknote-llm/';
+const tokenizer = await AutoTokenizer.from_pretrained('/models');
 
 const Demo = () => {
 	const selectedModel = 'Llama-3-8B-Instruct-q4f16_1';
@@ -46,15 +55,25 @@ const Demo = () => {
 	const [errorBrowserMessage, setErrorBrowserMessage] = useState<string | null>(
 		null
 	);
+	const [error, setError] = useState<string | null>(null);
 	const [currentProccess, setCurrentProcess] = useState<
 		'translation' | 'correction' | 'resume' | 'developpe' | null
 	>(null);
 
 	const [output, setOutput] = useState<string>('');
 
+	const loadingMessage = {
+		translation: 'Document en cours de traduction. Génération de la réponse...',
+		correction: 'Document en cours de correction. Génération de la réponse...',
+		resume: 'Résumé du document en cours. Génération de la réponse...',
+		developpe:
+			'Développement du document en cours. Génération de la réponse...',
+	};
+
 	useEffect(() => {
+		const compatibleBrowser = checkBrowser();
 		checkModelInCache();
-		if (!engine) {
+		if (!engine && compatibleBrowser) {
 			loadEngine();
 		}
 	}, []);
@@ -63,6 +82,37 @@ const Demo = () => {
 	const secondEditor = useCreateBlockNote({
 		initialContent: mainEditor.document,
 	});
+
+	const checkBrowser = () => {
+		const userAgent = navigator.userAgent;
+		let compatibleBrowser = true;
+
+		const isMobile = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(
+			userAgent
+		);
+
+		if (isMobile) {
+			setErrorBrowserMessage(
+				'Les téléphones mobiles ne sont pas compatibles avec WebGPU.'
+			);
+			compatibleBrowser = false;
+		} else if (/firefox|fxios/i.test(userAgent)) {
+			setErrorBrowserMessage("Firefox n'est pas compatible avec WebGPU.");
+			compatibleBrowser = false;
+		} else if (
+			/safari/i.test(userAgent) &&
+			!/chrome|crios|crmo/i.test(userAgent)
+		) {
+			setErrorBrowserMessage("Safari n'est pas compatible avec WebGPU.");
+			compatibleBrowser = false;
+		} else if (!window.chrome) {
+			setErrorBrowserMessage(
+				"Votre navigatuer n'est pas compatible avec WebGPU."
+			);
+			compatibleBrowser = false;
+		}
+		return compatibleBrowser;
+	};
 
 	const initProgressCallback = (report: InitProgressReport) => {
 		//console.log(report);
@@ -124,7 +174,7 @@ const Demo = () => {
 		if (prompt === '') {
 			return;
 		}
-		setOutput('Document en cours de traduction');
+		setOutput(loadingMessage[task]);
 
 		let loadedEngine = engine;
 
@@ -135,17 +185,33 @@ const Demo = () => {
 			content: systemPrompt[task],
 		};
 
+		console.log('Prompt: ' + prompt);
+
 		const userMessage: ChatCompletionMessageParam = {
 			role: 'user',
 			content: prompt,
 		};
+
+		const chat = [systemMessage, userMessage];
+
+		const input_ids = tokenizer.apply_chat_template(chat, {
+			tokenize: true,
+			return_tensor: false,
+		});
+
+		if (input_ids.length > 7000) {
+			setError(
+				'Le texte de ce bloc est trop long. Veuillez raccourcir le texte ou le séparer en plusieurs blocs.'
+			);
+			return;
+		}
 
 		try {
 			console.log(systemMessage);
 			await loadedEngine.resetChat();
 			const completion = await loadedEngine.chat.completions.create({
 				stream: true,
-				messages: [systemMessage, userMessage],
+				messages: chat,
 			});
 
 			let assistantMessage = '';
@@ -228,6 +294,9 @@ const Demo = () => {
 	};
 
 	const translate = async () => {
+		if (errorBrowserMessage) {
+			return;
+		}
 		setCurrentProcess('translation');
 		setShowSecondEditor(true);
 		setIsGenerating(true);
@@ -263,9 +332,13 @@ const Demo = () => {
 		}
 		setCurrentProcess(null);
 		setIsGenerating(false);
+		setOutput('');
 	};
 
 	const correction = async () => {
+		if (errorBrowserMessage) {
+			return;
+		}
 		setCurrentProcess('correction');
 		setShowSecondEditor(true);
 		setIsGenerating(true);
@@ -295,9 +368,13 @@ const Demo = () => {
 		}
 		setIsGenerating(false);
 		setCurrentProcess(null);
+		setOutput('');
 	};
 
 	const resume = async () => {
+		if (errorBrowserMessage) {
+			return;
+		}
 		setCurrentProcess('resume');
 		setIsGenerating(true);
 		await removeNestedBlocks();
@@ -309,6 +386,14 @@ const Demo = () => {
 		let texte2 = '';
 		let texte1 = '';
 		let text = '';
+		addBlock(
+			mainEditor,
+			idBlocks[idBlocks.length - 1],
+			'Résumé en cours…',
+			'blue',
+			'before',
+			'New block resume'
+		);
 
 		for (const id of idBlocks) {
 			const block = mainEditor.getBlock(id);
@@ -320,10 +405,15 @@ const Demo = () => {
 							const prompt =
 								' Résume ce texte si besoin: ' +
 								texte3 +
-								" sachant que c'est une sous-partie de :" +
+								"\nSachant que c'est une sous-partie de : " +
 								titre3;
 							const res = await onSend(prompt, 'resume', (text: string) => {
-								console.log(text);
+								updateBlock(
+									mainEditor,
+									'New block resume',
+									'Résumé intermédiaire : ' + text,
+									'blue'
+								);
 							});
 							texte2 += res;
 						}
@@ -334,10 +424,15 @@ const Demo = () => {
 								' Résume ce texte si besoin: ' +
 								texte2 +
 								texte3 +
-								" sachant que c'est une sous-partie de :" +
+								"\nSachant que c'est une sous-partie de : " +
 								titre2;
 							const res = await onSend(prompt, 'resume', (text: string) => {
-								console.log(text);
+								updateBlock(
+									mainEditor,
+									'New block resume',
+									'Résumé intermédiaire : ' + text,
+									'blue'
+								);
 							});
 							texte1 += res;
 
@@ -352,10 +447,15 @@ const Demo = () => {
 								texte1 +
 								texte2 +
 								texte3 +
-								" sachant que c'est une sous-partie de :" +
+								"\nSachant que c'est une sous-partie de : " +
 								titre1;
 							const res = await onSend(prompt, 'resume', (text: string) => {
-								console.log(text);
+								updateBlock(
+									mainEditor,
+									'New block resume',
+									'Résumé intermédiaire : ' + text,
+									'blue'
+								);
 							});
 							text = res ?? '';
 
@@ -373,24 +473,26 @@ const Demo = () => {
 			const prompt =
 				' Résume ce texte si besoin: ' + text + texte1 + texte2 + texte3;
 			const res = await onSend(prompt, 'resume', (text: string) => {
-				console.log(text);
+				updateBlock(mainEditor, 'New block resume', text, 'blue');
 			});
 
 			if (res) {
-				addBlock(
-					mainEditor,
-					idBlocks[idBlocks.length - 1],
-					'Voici le résumé du document : \n' + res,
-					'blue',
-					'before'
-				);
+				const blocks = await mainEditor.tryParseMarkdownToBlocks(res);
+				for (const block of blocks) {
+					block.props.textColor = 'blue';
+				}
+				mainEditor.replaceBlocks(['New block resume'], blocks);
 			}
 		}
 		setIsGenerating(false);
 		setCurrentProcess(null);
+		setOutput('');
 	};
 
 	const developpe = async () => {
+		if (errorBrowserMessage) {
+			return;
+		}
 		setCurrentProcess('developpe');
 		setIsGenerating(true);
 		await removeNestedBlocks();
@@ -405,6 +507,7 @@ const Demo = () => {
 			'New block development'
 		);
 		let text = '';
+		let res;
 		for (const id of idBlocks) {
 			const block = mainEditor.getBlock(id);
 			if (block) {
@@ -413,12 +516,20 @@ const Demo = () => {
 		}
 		if (text !== '') {
 			const prompt = 'Développe un texte à partir de ces éléments : ' + text;
-			await onSend(prompt, 'developpe', (text: string) => {
+			res = await onSend(prompt, 'developpe', async (text: string) => {
 				updateBlock(mainEditor, 'New block development', text, 'blue');
 			});
 		}
+		if (res) {
+			const blocks = await mainEditor.tryParseMarkdownToBlocks(res);
+			for (const block of blocks) {
+				block.props.textColor = 'blue';
+			}
+			mainEditor.replaceBlocks(['New block development'], blocks);
+		}
 		setIsGenerating(false);
 		setCurrentProcess(null);
+		setOutput('');
 	};
 
 	return (
@@ -453,51 +564,63 @@ const Demo = () => {
 				<h1>BlockNoteLLM</h1>
 
 				<div className='button-container'>
-					<Button
-						variant='light'
-						color='black'
-						onClick={translate}
-						disabled={isGenerating || isFecthing}
-						loading={isFecthing || currentProccess === 'translation'}
-					>
-						Traduire le document
-					</Button>
-					<Button
-						variant='light'
-						color='black'
-						onClick={correction}
-						disabled={isGenerating || isFecthing}
-						loading={isFecthing || currentProccess === 'correction'}
-					>
-						Corriger le document
-					</Button>
-					<Button
-						variant='light'
-						color='black'
-						onClick={resume}
-						disabled={isGenerating || isFecthing}
-						loading={isFecthing || currentProccess === 'resume'}
-					>
-						Résumer le document
-					</Button>
-					<Button
-						variant='light'
-						color='black'
-						onClick={developpe}
-						disabled={isGenerating || isFecthing}
-						loading={isFecthing || currentProccess === 'developpe'}
-					>
-						Développer le document
-					</Button>
+					<Tooltip label="Traduis l'ensemble du document dans un nouveau bloc note">
+						<Button
+							variant='light'
+							color='black'
+							onClick={translate}
+							disabled={isGenerating || isFecthing}
+							loading={isFecthing || currentProccess === 'translation'}
+						>
+							Traduire le document
+						</Button>
+					</Tooltip>
+					<Tooltip label="Corrige l'ensemble du document dans un nouveau bloc note">
+						<Button
+							variant='light'
+							color='black'
+							onClick={correction}
+							disabled={isGenerating || isFecthing}
+							loading={isFecthing || currentProccess === 'correction'}
+						>
+							Corriger le document
+						</Button>
+					</Tooltip>
+					<Tooltip label="Résume l'ensemble du document">
+						<Button
+							variant='light'
+							color='black'
+							onClick={resume}
+							disabled={isGenerating || isFecthing}
+							loading={isFecthing || currentProccess === 'resume'}
+						>
+							Résumer le document
+						</Button>
+					</Tooltip>
+					<Tooltip label='Génére un texte à partir de bullet points'>
+						<Button
+							variant='light'
+							color='black'
+							onClick={developpe}
+							disabled={isGenerating || isFecthing}
+							loading={isFecthing || currentProccess === 'developpe'}
+						>
+							Développer le document
+						</Button>
+					</Tooltip>
 				</div>
 
-				<p className='text-error'>
-					{errorBrowserMessage} Veuillez consulter{' '}
-					<a href='https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility'>
-						<span className='underline'>cette page</span>
-					</a>{' '}
-					pour voir la compatibilité avec les navigateurs.
-				</p>
+				{errorBrowserMessage && (
+					<p className='text-error'>
+						{errorBrowserMessage} Veuillez consulter{' '}
+						<a href='https://developer.mozilla.org/en-US/docs/Web/API/WebGPU_API#browser_compatibility'>
+							<span className='underline'>cette page</span>
+						</a>{' '}
+						pour voir la compatibilité avec les navigateurs.
+					</p>
+				)}
+
+				{error && <p className='text-error'>{error}</p>}
 
 				{output && <p className='text-info'>{output}</p>}
 

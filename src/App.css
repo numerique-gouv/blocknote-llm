@@ -160,10 +160,17 @@
 	color: white;
 }
 
+@media (max-width: 980px) {
+	.button-container {
+		gap: 0.5rem;
+	}
+}
+
 @media (max-width: 768px) {
 	.button-container {
 		flex-direction: column;
 		height: 20rem;
+		gap: 3rem;
 	}
 
 	.reset-button {
