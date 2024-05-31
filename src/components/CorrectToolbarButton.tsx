@@ -9,12 +9,14 @@ import correctSingleBlock from '../utils/correctSingleBlock';
 import { EngineInterface } from '@mlc-ai/web-llm';
 
 // Custom Formatting Toolbar Button to correct the selected text
-export function CorrectToolbarButton({ onSend }: { onSend: () => void }) {
+export function CorrectToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching }) {
 	const editor = useBlockNoteEditor();
 
     async function correctBlocks(blocks: Block[], editor: BlockNoteEditor) {
+        setIsGenerating(true)
+        setCurrentProcess('correction')
         const correctedTextColor = 'blue'
-        if (blocks.length == 1) {
+        if (false && blocks.length == 1) {
             const text = editor.getSelectedText()
             const block = blocks[0]
             const correctProps = block.props
@@ -37,6 +39,7 @@ export function CorrectToolbarButton({ onSend }: { onSend: () => void }) {
                 onSend,
                 )
         } else {
+            console.log("correctBlocks")
             for (const block of blocks) {
                 const correctProps = block.props
                 correctProps['textColor'] = correctedTextColor
@@ -50,10 +53,12 @@ export function CorrectToolbarButton({ onSend }: { onSend: () => void }) {
                         'after'
                     )
                     const newBlock = newBlocks[0]
-                    await correctSingleBlock(block, newBlock, editor, editor, onSend, engine)
+                    await correctSingleBlock(block, newBlock, editor, editor, onSend)
                 }
             }
         }
+        setIsGenerating(false)
+        setCurrentProcess(null)
     }
 
 	const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]);
@@ -71,6 +76,7 @@ export function CorrectToolbarButton({ onSend }: { onSend: () => void }) {
 	return (
 		<ToolbarButton
 			mainTooltip={'Corriger'}
+            isDisabled={isFetching||isGenerating}
 			onClick={() => {
 				correctBlocks(editor.getSelection()?.blocks, editor);
 			}}

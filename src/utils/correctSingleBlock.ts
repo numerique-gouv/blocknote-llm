@@ -16,7 +16,7 @@ async function correctSingleBlock(
 	// get plain text of sourceBlock
 
     if (text === '') { return }
-	
+	console.log(text)
 
 
 	await onSend(

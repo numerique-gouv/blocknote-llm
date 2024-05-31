@@ -47,7 +47,7 @@ const Demo = () => {
 	const [engine, setEngine] = useState<EngineInterface | null>(null);
 	const [progress, setProgress] = useState('Not loaded');
 	const [progressPercentage, setProgressPercentage] = useState(0);
-	const [isFecthing, setIsFetching] = useState(false);
+	const [isFetching, setIsFetching] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
 	const [runtimeStats, setRuntimeStats] = useState('');
 	const [modelInCache, setModelInCache] = useState<boolean | null>(null);
@@ -541,8 +541,8 @@ const Demo = () => {
 						variant='default'
 						color='black'
 						size='xl'
-						data-disabled={isFecthing || isGenerating}
-						loading={isFecthing}
+						data-disabled={isFetching || isGenerating}
+						loading={isFetching}
 						onClick={reset}
 					>
 						<IconTrash style={{ width: '70%', height: '70%' }} />
@@ -554,7 +554,7 @@ const Demo = () => {
 						color='black'
 						size='xl'
 						data-disabled={!isGenerating}
-						loading={isFecthing}
+						loading={isFetching}
 						onClick={onStop}
 					>
 						<IconPlayerStop style={{ width: '70%', height: '70%' }} />
@@ -570,8 +570,8 @@ const Demo = () => {
 							variant='light'
 							color='black'
 							onClick={translate}
-							disabled={isGenerating || isFecthing}
-							loading={isFecthing || currentProccess === 'translation'}
+							disabled={isGenerating || isFetching}
+							loading={isFetching || currentProccess === 'translation'}
 						>
 							Traduire le document
 						</Button>
@@ -581,8 +581,8 @@ const Demo = () => {
 							variant='light'
 							color='black'
 							onClick={correction}
-							disabled={isGenerating || isFecthing}
-							loading={isFecthing || currentProccess === 'correction'}
+							disabled={isGenerating || isFetching}
+							loading={isFetching || currentProccess === 'correction'}
 						>
 							Corriger le document
 						</Button>
@@ -592,8 +592,8 @@ const Demo = () => {
 							variant='light'
 							color='black'
 							onClick={resume}
-							disabled={isGenerating || isFecthing}
-							loading={isFecthing || currentProccess === 'resume'}
+							disabled={isGenerating || isFetching}
+							loading={isFetching || currentProccess === 'resume'}
 						>
 							Résumer le document
 						</Button>
@@ -603,8 +603,8 @@ const Demo = () => {
 							variant='light'
 							color='black'
 							onClick={developpe}
-							disabled={isGenerating || isFecthing}
-							loading={isFecthing || currentProccess === 'developpe'}
+							disabled={isGenerating || isFetching}
+							loading={isFetching || currentProccess === 'developpe'}
 						>
 							Développer le document
 						</Button>
@@ -656,7 +656,13 @@ const Demo = () => {
 				>
 					<FormattingToolbarController
 						formattingToolbar={() => (
-							<CustomFormattingToolbar onSend={onSend} />
+							<CustomFormattingToolbar
+                            onSend={onSend}
+                            isGenerating={isGenerating}
+                            setIsGenerating={setIsGenerating}
+                            currentProccess={currentProccess}
+                            setCurrentProcess={setCurrentProcess}
+                            isFetching={isFetching}/>
 						)}
 					/>
 				</BlockNoteView>
