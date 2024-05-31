@@ -8,7 +8,7 @@ import { useState } from "react";
 
 
 // Custom Formatting Toolbar Button to translate text to English
-export function TranslateToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching }) {
+export function TranslateToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
     const editor = useBlockNoteEditor();
 
     async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
@@ -73,6 +73,7 @@ export function TranslateToolbarButton({ onSend, isGenerating, setIsGenerating, 
         }
         setIsGenerating(false)
         setCurrentProcess(null)
+        setOutput('')
     }
 
     const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([])

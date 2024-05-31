@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { addBlock, getEditorBlocks, updateBlock } from '../utils/blockManipulation';
 import { transformateurJsonToString } from '../utils/ParserBlockToString';
 
-export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching }) {
+export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
 
     const editor = useBlockNoteEditor();
 
@@ -39,6 +39,7 @@ export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, cu
 
         setIsGenerating(false)
         setCurrentProcess(null)
+        setOutput('')
     }
 
     const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]);

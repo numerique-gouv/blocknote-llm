@@ -9,7 +9,7 @@ import correctSingleBlock from '../utils/correctSingleBlock';
 import { EngineInterface } from '@mlc-ai/web-llm';
 
 // Custom Formatting Toolbar Button to correct the selected text
-export function CorrectToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching }) {
+export function CorrectToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
 	const editor = useBlockNoteEditor();
 
     async function correctBlocks(blocks: Block[], editor: BlockNoteEditor) {
@@ -59,6 +59,7 @@ export function CorrectToolbarButton({ onSend, isGenerating, setIsGenerating, cu
         }
         setIsGenerating(false)
         setCurrentProcess(null)
+        setOutput('')
     }
 
 	const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]);

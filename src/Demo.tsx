@@ -662,7 +662,8 @@ const Demo = () => {
                             setIsGenerating={setIsGenerating}
                             currentProccess={currentProccess}
                             setCurrentProcess={setCurrentProcess}
-                            isFetching={isFetching}/>
+                            isFetching={isFetching}
+                            setOutput={setOutput}/>
 						)}
 					/>
 				</BlockNoteView>
