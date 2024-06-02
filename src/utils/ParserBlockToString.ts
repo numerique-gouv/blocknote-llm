@@ -20,7 +20,6 @@ export const transformateurJsonToString = (block: Block) => {
             } else {
                 text += item.text
             }
-            text += '\n'
 		}
 	}
 

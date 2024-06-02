@@ -8,7 +8,7 @@ import { useState } from "react";
 
 
 // Custom Formatting Toolbar Button to translate text to English
-export function TranslateToolbarButton({ onSend }) {
+export function TranslateToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
     const editor = useBlockNoteEditor();
 
     async function translateSingleBlock (block: Block, editor: BlockNoteEditor) {
@@ -43,6 +43,9 @@ export function TranslateToolbarButton({ onSend }) {
     }
 
     async function translateBlocks(blocks: Block[], editor: BlockNoteEditor) {
+        console.log("translateBlocks")
+        setIsGenerating(true)
+        setCurrentProcess('translation')
         if (blocks.length == 1) {
             const block = blocks[0]
             const text = editor.getSelectedText()
@@ -56,7 +59,7 @@ export function TranslateToolbarButton({ onSend }) {
                 block.id,
                 'after'
             )[0]
-            onSend(
+            await onSend(
                 "Translate this text to English : " + text,
                 'translation',
                 async (translatedText: string) => {
@@ -68,6 +71,9 @@ export function TranslateToolbarButton({ onSend }) {
                 await translateSingleBlock(block, editor)
             }
         }
+        setIsGenerating(false)
+        setCurrentProcess(null)
+        setOutput('')
     }
 
     const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([])
@@ -85,8 +91,9 @@ export function TranslateToolbarButton({ onSend }) {
     return (
         <ToolbarButton
         mainTooltip={"Traduire"}
+        isDisabled={isFetching||isGenerating}
         onClick={() => {
-            translateBlocks(editor.getSelection()?.blocks, editor)
+            translateBlocks(selectedBlocks, editor)
         }}>
         Traduire
         </ToolbarButton>

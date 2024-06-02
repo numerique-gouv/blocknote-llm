@@ -4,15 +4,42 @@ import { CorrectToolbarButton } from "./CorrectToolbarButton";
 import { DevelopToolbarButton } from "./DevelopToolbarButton";
 import { EngineInterface } from "@mlc-ai/web-llm";
 
-export function CustomFormattingToolbar({ onSend, engine }: { onSend: () => void, engine: EngineInterface}) {
+export function CustomFormattingToolbar({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
     return (
         <FormattingToolbar>
             <BlockTypeSelect key={"blockTypeSelect"} />
     
             {/* Extra button to toggle blue text & background */}
-            <TranslateToolbarButton key={"translateButton"} onSend={onSend}/>
-            <CorrectToolbarButton key={"correctButton"} onSend={onSend}/>
-            <DevelopToolbarButton key={"developButton"} onSend={onSend}/>
+            <TranslateToolbarButton
+                key={"translateButton"}
+                onSend={onSend}
+                isGenerating={isGenerating}
+                setIsGenerating={setIsGenerating}
+                currentProccess={currentProccess}
+                setCurrentProcess={setCurrentProcess}
+                isFetching={isFetching}
+                setOutput={setOutput}
+            />
+            <CorrectToolbarButton
+                key={"correctButton"}
+                onSend={onSend}
+                isGenerating={isGenerating}
+                setIsGenerating={setIsGenerating}
+                currentProccess={currentProccess}
+                setCurrentProcess={setCurrentProcess}
+                isFetching={isFetching}
+                setOutput={setOutput}
+            />
+            <DevelopToolbarButton
+                key={"developButton"}
+                onSend={onSend}
+                isGenerating={isGenerating}
+                setIsGenerating={setIsGenerating}
+                currentProccess={currentProccess}
+                setCurrentProcess={setCurrentProcess}
+                isFetching={isFetching}
+                setOutput={setOutput}
+            />
     
             <ImageCaptionButton key={"imageCaptionButton"} />
             <ReplaceImageButton key={"replaceImageButton"} />

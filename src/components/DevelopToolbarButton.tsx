@@ -8,11 +8,13 @@ import { useState } from 'react';
 import { addBlock, getEditorBlocks, updateBlock } from '../utils/blockManipulation';
 import { transformateurJsonToString } from '../utils/ParserBlockToString';
 
-export function DevelopToolbarButton({ onSend }) {
+export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
 
     const editor = useBlockNoteEditor();
 
     async function developBlocks(blocks: Block[]) {
+        setIsGenerating(true)
+        setCurrentProcess('developpe')
 
         const newBlocks = editor.insertBlocks(
             [{
@@ -34,6 +36,10 @@ export function DevelopToolbarButton({ onSend }) {
                 updateBlock(editor, newBlocks[0].id, text, 'blue');
             });
         }
+
+        setIsGenerating(false)
+        setCurrentProcess(null)
+        setOutput('')
     }
 
     const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]);
@@ -50,7 +56,8 @@ export function DevelopToolbarButton({ onSend }) {
 
 	return (
 		<ToolbarButton
-			mainTooltip={'Développer'}
+			mainTooltip={'Corriger'}
+            isDisabled={isFetching||isGenerating}
 			onClick={() => {
 				developBlocks(editor.getSelection()?.blocks, editor);
 			}}
