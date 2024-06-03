@@ -66,8 +66,7 @@ const Demo = () => {
 		translation: 'Document en cours de traduction. Génération de la réponse...',
 		correction: 'Document en cours de correction. Génération de la réponse...',
 		summary: 'Résumé du document en cours. Génération de la réponse...',
-		develop:
-			'Développement du document en cours. Génération de la réponse...',
+		develop: 'Développement du document en cours. Génération de la réponse...',
 	};
 
 	useEffect(() => {
@@ -82,6 +81,16 @@ const Demo = () => {
 	const secondEditor = useCreateBlockNote({
 		initialContent: mainEditor.document,
 	});
+
+	const test = async () => {
+		let loadedEngine = engine;
+		loadedEngine = await ensureEngineLoaded(loadedEngine);
+		const maxStorageBufferBindingSize =
+			await loadedEngine.getMaxStorageBufferBindingSize();
+		console.log(maxStorageBufferBindingSize);
+
+		const gpuVendor = await loadedEngine.getGPUVendor();
+	};
 
 	const checkBrowser = () => {
 		const userAgent = navigator.userAgent;
@@ -657,13 +666,14 @@ const Demo = () => {
 					<FormattingToolbarController
 						formattingToolbar={() => (
 							<CustomFormattingToolbar
-                            onSend={onSend}
-                            isGenerating={isGenerating}
-                            setIsGenerating={setIsGenerating}
-                            currentProccess={currentProccess}
-                            setCurrentProcess={setCurrentProcess}
-                            isFetching={isFetching}
-                            setOutput={setOutput}/>
+								onSend={onSend}
+								isGenerating={isGenerating}
+								setIsGenerating={setIsGenerating}
+								currentProccess={currentProccess}
+								setCurrentProcess={setCurrentProcess}
+								isFetching={isFetching}
+								setOutput={setOutput}
+							/>
 						)}
 					/>
 				</BlockNoteView>
