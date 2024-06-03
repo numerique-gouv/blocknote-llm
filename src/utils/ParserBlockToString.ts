@@ -1,6 +1,6 @@
 import { Block } from '@blocknote/core';
 
-export const transformateurJsonToString = (block: Block) => {
+export const convertBlockToString = (block: Block) => {
 	let text = '';
 	if (block.type === 'table') {
 		for (const row of block.content.rows) {
@@ -16,7 +16,7 @@ export const transformateurJsonToString = (block: Block) => {
 	} else if (block.content) {
 		for (const item of block.content) {
 			if (item.type === 'link') {
-                text += transformateurJsonToString({ type: 'paragraph', content: item.content })
+                text += convertBlockToString({ type: 'paragraph', content: item.content })
             } else {
                 text += item.text
             }

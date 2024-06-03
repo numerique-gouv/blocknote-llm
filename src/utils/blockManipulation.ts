@@ -1,5 +1,5 @@
 import { BlockNoteEditor, StyleSchema, StyledText } from '@blocknote/core';
-import { transformateurJsonToString } from './ParserBlockToString';
+import { convertBlockToString } from './ParserBlockToString';
 
 export const updateContentBlock = (
 	editor: BlockNoteEditor,
@@ -66,7 +66,7 @@ export const addBlock = (
 export const getEditorBlocks = (editor: BlockNoteEditor) => {
 	const idBlocks: string[] = [];
 	editor.forEachBlock((block) => {
-		const text = transformateurJsonToString(block);
+		const text = convertBlockToString(block);
 		if (text !== '') {
 			idBlocks.push(block.id);
 		}
@@ -90,7 +90,7 @@ export const duplicateEditor = async (
 		initialEditor.document
 	);
 	initialEditor.forEachBlock((block) => {
-		const text = transformateurJsonToString(block);
+		const text = convertBlockToString(block);
 		if (text !== '') {
 			idBlocks.push(block.id);
 			duplicateEditor.updateBlock(block.id, {

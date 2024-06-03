@@ -2,7 +2,7 @@ import { Block, BlockNoteEditor } from '@blocknote/core';
 import diffText from './diffText';
 import { diffWords, diffChars } from 'diff';
 import { EngineInterface } from '@mlc-ai/web-llm';
-import { transformateurJsonToString } from './ParserBlockToString';
+import { convertBlockToString } from './ParserBlockToString';
 
 async function correctSingleBlock(
 	sourceBlock: Block | undefined,
@@ -12,7 +12,7 @@ async function correctSingleBlock(
 	onSend: Function,
 	design: number = 1
 ) {
-	const text = transformateurJsonToString(sourceBlock);
+	const text = convertBlockToString(sourceBlock);
 	// get plain text of sourceBlock
 
     if (text === '') { return }

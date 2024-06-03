@@ -6,7 +6,7 @@ import {
 } from '@blocknote/react';
 import { useState } from 'react';
 import { addBlock, getEditorBlocks, updateBlock } from '../utils/blockManipulation';
-import { transformateurJsonToString } from '../utils/ParserBlockToString';
+import { convertBlockToString } from '../utils/ParserBlockToString';
 
 export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, currentProccess, setCurrentProcess, isFetching, setOutput }) {
 
@@ -14,7 +14,7 @@ export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, cu
 
     async function developBlocks(blocks: Block[]) {
         setIsGenerating(true)
-        setCurrentProcess('developpe')
+        setCurrentProcess('develop')
 
         const newBlocks = editor.insertBlocks(
             [{
@@ -27,12 +27,12 @@ export function DevelopToolbarButton({ onSend, isGenerating, setIsGenerating, cu
         let text = '';
         for (const block of blocks) {
             if (block) {
-                text += transformateurJsonToString(block);
+                text += convertBlockToString(block);
             }
         }
         if (text !== '') {
             const prompt = 'Développe un texte à partir de ces éléments : ' + text;
-            await onSend(prompt, 'developpe', (text: string) => {
+            await onSend(prompt, 'develop', (text: string) => {
                 updateBlock(editor, newBlocks[0].id, text, 'blue');
             });
         }

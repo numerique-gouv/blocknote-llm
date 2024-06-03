@@ -14,7 +14,7 @@ import {
 	InitProgressReport,
 	hasModelInCache,
 } from '@mlc-ai/web-llm';
-import { transformateurJsonToString } from './utils/ParserBlockToString';
+import { convertBlockToString } from './utils/ParserBlockToString';
 import { Block, BlockNoteEditor } from '@blocknote/core';
 import { CustomFormattingToolbar } from './components/CustomFormattingToolbar';
 import { appConfig } from './app-config';
@@ -57,7 +57,7 @@ const Demo = () => {
 	);
 	const [error, setError] = useState<string | null>(null);
 	const [currentProccess, setCurrentProcess] = useState<
-		'translation' | 'correction' | 'resume' | 'developpe' | null
+		'translation' | 'correction' | 'summary' | 'develop' | null
 	>(null);
 
 	const [output, setOutput] = useState<string>('');
@@ -65,8 +65,8 @@ const Demo = () => {
 	const loadingMessage = {
 		translation: 'Document en cours de traduction. Génération de la réponse...',
 		correction: 'Document en cours de correction. Génération de la réponse...',
-		resume: 'Résumé du document en cours. Génération de la réponse...',
-		developpe:
+		summary: 'Résumé du document en cours. Génération de la réponse...',
+		develop:
 			'Développement du document en cours. Génération de la réponse...',
 	};
 
@@ -173,7 +173,7 @@ const Demo = () => {
 
 	const onSend = async (
 		prompt: string,
-		task: 'translation' | 'correction' | 'resume' | 'developpe',
+		task: 'translation' | 'correction' | 'summary' | 'develop',
 		updateEditor: updateEditor
 	) => {
 		if (prompt === '') {
@@ -314,7 +314,7 @@ const Demo = () => {
 			const secondBlock = secondEditor.getBlock(id);
 			let text = '';
 			if (mainBlock) {
-				text = transformateurJsonToString(mainBlock);
+				text = convertBlockToString(mainBlock);
 			}
 			const markdownText = await mainEditor.blocksToMarkdownLossy([mainBlock]);
 			if (text !== '') {
@@ -355,7 +355,7 @@ const Demo = () => {
 			const block = mainEditor.getBlock(id);
 			let text = '';
 			if (block) {
-				text = transformateurJsonToString(block);
+				text = convertBlockToString(block);
 			}
 			if (text !== '') {
 				await correctSingleBlock(
@@ -372,11 +372,11 @@ const Demo = () => {
 		setOutput('');
 	};
 
-	const resume = async () => {
+	const summary = async () => {
 		if (errorBrowserMessage) {
 			return;
 		}
-		setCurrentProcess('resume');
+		setCurrentProcess('summary');
 		setIsGenerating(true);
 		await removeNestedBlocks();
 		const idBlocks = getEditorBlocks(mainEditor).reverse();
@@ -393,7 +393,7 @@ const Demo = () => {
 			'Résumé en cours…',
 			'blue',
 			'before',
-			'New block resume'
+			'New block summary'
 		);
 
 		for (const id of idBlocks) {
@@ -401,17 +401,17 @@ const Demo = () => {
 			if (block) {
 				if (block.type === 'heading') {
 					if (block.props.level === 3) {
-						titre3 = transformateurJsonToString(block);
+						titre3 = convertBlockToString(block);
 						if (texte3 !== '') {
 							const prompt =
 								' Résume ce texte si besoin: ' +
 								texte3 +
 								"\nSachant que c'est une sous-partie de : " +
 								titre3;
-							const res = await onSend(prompt, 'resume', (text: string) => {
+							const res = await onSend(prompt, 'summary', (text: string) => {
 								updateBlock(
 									mainEditor,
-									'New block resume',
+									'New block summary',
 									'Résumé intermédiaire : ' + text,
 									'blue'
 								);
@@ -420,17 +420,17 @@ const Demo = () => {
 						}
 					} else if (block.props.level === 2) {
 						if (texte2 + texte3 !== '') {
-							titre2 = transformateurJsonToString(block);
+							titre2 = convertBlockToString(block);
 							const prompt =
 								' Résume ce texte si besoin: ' +
 								texte2 +
 								texte3 +
 								"\nSachant que c'est une sous-partie de : " +
 								titre2;
-							const res = await onSend(prompt, 'resume', (text: string) => {
+							const res = await onSend(prompt, 'summary', (text: string) => {
 								updateBlock(
 									mainEditor,
-									'New block resume',
+									'New block summary',
 									'Résumé intermédiaire : ' + text,
 									'blue'
 								);
@@ -442,7 +442,7 @@ const Demo = () => {
 						}
 					} else if (block.props.level === 1) {
 						if (texte1 + texte2 + texte3 !== '') {
-							titre1 = transformateurJsonToString(block);
+							titre1 = convertBlockToString(block);
 							const prompt =
 								' Résume ce texte si besoin: ' +
 								texte1 +
@@ -450,10 +450,10 @@ const Demo = () => {
 								texte3 +
 								"\nSachant que c'est une sous-partie de : " +
 								titre1;
-							const res = await onSend(prompt, 'resume', (text: string) => {
+							const res = await onSend(prompt, 'summary', (text: string) => {
 								updateBlock(
 									mainEditor,
-									'New block resume',
+									'New block summary',
 									'Résumé intermédiaire : ' + text,
 									'blue'
 								);
@@ -466,15 +466,15 @@ const Demo = () => {
 						}
 					}
 				} else {
-					texte3 = transformateurJsonToString(block) + texte3;
+					texte3 = convertBlockToString(block) + texte3;
 				}
 			}
 		}
 		if (text + texte1 + texte2 + texte3 !== '') {
 			const prompt =
 				' Résume ce texte si besoin: ' + text + texte1 + texte2 + texte3;
-			const res = await onSend(prompt, 'resume', (text: string) => {
-				updateBlock(mainEditor, 'New block resume', text, 'blue');
+			const res = await onSend(prompt, 'summary', (text: string) => {
+				updateBlock(mainEditor, 'New block summary', text, 'blue');
 			});
 
 			if (res) {
@@ -482,7 +482,7 @@ const Demo = () => {
 				for (const block of blocks) {
 					block.props.textColor = 'blue';
 				}
-				mainEditor.replaceBlocks(['New block resume'], blocks);
+				mainEditor.replaceBlocks(['New block summary'], blocks);
 			}
 		}
 		setIsGenerating(false);
@@ -490,11 +490,11 @@ const Demo = () => {
 		setOutput('');
 	};
 
-	const developpe = async () => {
+	const develop = async () => {
 		if (errorBrowserMessage) {
 			return;
 		}
-		setCurrentProcess('developpe');
+		setCurrentProcess('develop');
 		setIsGenerating(true);
 		await removeNestedBlocks();
 
@@ -512,12 +512,12 @@ const Demo = () => {
 		for (const id of idBlocks) {
 			const block = mainEditor.getBlock(id);
 			if (block) {
-				text += transformateurJsonToString(block);
+				text += convertBlockToString(block);
 			}
 		}
 		if (text !== '') {
 			const prompt = 'Développe un texte à partir de ces éléments : ' + text;
-			res = await onSend(prompt, 'developpe', async (text: string) => {
+			res = await onSend(prompt, 'develop', async (text: string) => {
 				updateBlock(mainEditor, 'New block development', text, 'blue');
 			});
 		}
@@ -591,9 +591,9 @@ const Demo = () => {
 						<Button
 							variant='light'
 							color='black'
-							onClick={resume}
+							onClick={summary}
 							disabled={isGenerating || isFetching}
-							loading={isFetching || currentProccess === 'resume'}
+							loading={isFetching || currentProccess === 'summary'}
 						>
 							Résumer le document
 						</Button>
@@ -602,9 +602,9 @@ const Demo = () => {
 						<Button
 							variant='light'
 							color='black'
-							onClick={developpe}
+							onClick={develop}
 							disabled={isGenerating || isFetching}
-							loading={isFetching || currentProccess === 'developpe'}
+							loading={isFetching || currentProccess === 'develop'}
 						>
 							Développer le document
 						</Button>
